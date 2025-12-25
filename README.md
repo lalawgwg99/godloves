@@ -53,8 +53,6 @@ npm run dev
 
 ### 取得 Gemini API Key
 
-前往 [Google AI Studio](https://aistudio.google.com/app/apikey) 取得免費的 API Key
-
 ### 方法二:使用 Wrangler CLI
 
 ```bash

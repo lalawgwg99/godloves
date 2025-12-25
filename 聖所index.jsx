@@ -11,7 +11,13 @@ const {
   Heart,
   Mic2,
   Loader2,
-  Wind
+  Wind,
+  History,
+  BookOpen,
+  BookOpen,
+  VolumeX,
+  Plus,
+  Share
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
@@ -39,6 +45,11 @@ const SanctuaryPro = () => {
   const [userStory, setUserStory] = useState('');
   const [selectedMood, setSelectedMood] = useState('關於平安：當心靈感到沉重時');
   const [charCount, setCharCount] = useState(0);
+  const [history, setHistory] = useState([]); // 歷史紀錄
+  const [showHistory, setShowHistory] = useState(false);
+
+  // 音效
+  const { isMuted, toggleSound, initAudio } = useAmbientSound();
 
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -54,6 +65,56 @@ const SanctuaryPro = () => {
   const resultRef = useRef(null);
   const audioContextRef = useRef(null);
   const audioSourceRef = useRef(null);
+
+  // --- 新增: 音訊載入狀態 ---
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+
+  // --- 初始化：讀取歷史與自動播放音效提示 ---
+  useEffect(() => {
+    const saved = localStorage.getItem('sanctuary_journal');
+    if (saved) {
+      try { setHistory(JSON.parse(saved)); } catch (e) { }
+    }
+
+    // 全域點擊一次就初始化音效引擎 (解決瀏覽器限制，但不一定馬上播放)
+    const handleInteraction = () => {
+      initAudio();
+      window.removeEventListener('click', handleInteraction);
+    };
+    window.addEventListener('click', handleInteraction);
+    return () => window.removeEventListener('click', handleInteraction);
+  }, []);
+
+  // --- 歷史紀錄存檔 ---
+  const saveToHistory = (newEntry) => {
+    const entry = {
+      id: Date.now(),
+      date: new Date().toLocaleDateString(),
+      ...newEntry
+    };
+    const newHistory = [entry, ...history].slice(0, 10); // 只留最近10筆
+    setHistory(newHistory);
+    localStorage.setItem('sanctuary_journal', JSON.stringify(newHistory));
+  };
+
+  const loadFromHistory = (entry) => {
+    setResult({
+      verse: entry.verse,
+      reference: entry.reference,
+      part1: entry.part1,
+      part2: entry.part2,
+      part3: entry.part3,
+      image_prompt: entry.image_prompt
+    });
+    setPrayer('');
+    setImageUrl(''); // 歷史紀錄不存圖片 Base64 以免爆掉，需重新生成或留空
+    // 如果想要，可以只存 prompt 然後重新生成，或是只顯示文字
+    setStatus('已載入回憶');
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    setShowHistory(false);
+  };
 
   // --- 工具函式：JSON 清洗 ---
   const cleanJsonString = (str) => {
@@ -163,6 +224,11 @@ const SanctuaryPro = () => {
     setStatus(apiError ? '已完成 (使用備用內容)' : '完成');
     setIsLoading(false);
 
+    // 存入歷史
+    if (wisdomResult && wisdomResult.verse) {
+      saveToHistory(wisdomResult);
+    }
+
     setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 500);
@@ -185,10 +251,12 @@ const SanctuaryPro = () => {
     }
 
     setIsPlaying(true);
+    setIsAudioLoading(true); // 開始載入
     try {
       // 🔥 關鍵優化：TTS 提示詞工程 🔥
+
       // 我們不只傳送文字，還傳送了「語氣指導」(Emotional Prompting)
-      const ttsPrompt = `Speak with a very slow, gentle, and extremely loving voice, like a compassionate parent comforting a child. Use a soft tone, full of warmth and reassurance. The text is: ${result.part1} ${result.part2}`;
+      const ttsPrompt = `Please read this with deep empathy and human-like warmth. Don't sound robotic. Imagine you are a wise, loving father speaking softly to a child who is hurting. Use natural pauses, a slow pace, and a comforting tone. Text: ${result.part1} ${result.part2}`;
 
       const ttsBody = {
         contents: [{ parts: [{ text: ttsPrompt }] }],
@@ -233,10 +301,13 @@ const SanctuaryPro = () => {
       source.onended = () => setIsPlaying(false);
       source.start();
       audioSourceRef.current = source;
+      setIsAudioLoading(false); // 載入完成
 
     } catch (e) {
+
       console.error("TTS Failed", e);
       setIsPlaying(false);
+      setIsAudioLoading(false); // 發生錯誤也要解除載入狀態
       alert("語音連結暫時中斷，請稍後再試。");
     }
   };
@@ -259,6 +330,44 @@ const SanctuaryPro = () => {
     }
   };
 
+  // --- 新增功能：分享與下載 ---
+  const handleShare = async () => {
+    if (!result) return;
+    const shareText = `【光之聖所】\n\n${result.verse}\n(${result.reference})\n\n${result.part1}\n\n願這份平安也臨到你。`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '來自光之聖所的祝福',
+          text: shareText,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Share canceled');
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText);
+        alert("祝福已複製到剪貼簿，可以傳送給朋友了。");
+      } catch (err) {
+        alert("無法複製內容，請手動截圖分享。");
+      }
+    }
+  };
+
+  const handleDownload = () => {
+    if (!imageUrl) return;
+
+    // 建立一個臨時的 <a> 標籤來觸發下載
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `Sanctuary_Blessing_${new Date().getTime()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // --- Render ---
   return (
     <div className="min-h-screen bg-[#050506] text-[#f8f8fc] font-sans selection:bg-amber-500/30 overflow-x-hidden relative pb-24">
@@ -276,8 +385,11 @@ const SanctuaryPro = () => {
             <Sparkles className="w-5 h-5 text-amber-500/60" />
             <h1 className="font-light text-xl tracking-[0.4em] uppercase text-white/95">光之聖所</h1>
           </div>
-          <div className="text-[10px] font-bold text-stone-500 tracking-[0.2em] border border-white/10 px-3 py-1 rounded-full uppercase">
+          <div className="text-[10px] font-bold text-stone-500 tracking-[0.2em] border border-white/10 px-3 py-1 rounded-full uppercase flex items-center gap-2">
             Sanctuary Pro
+            <button onClick={toggleSound} className="hover:text-amber-500 transition-colors">
+              {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3 text-amber-500" />}
+            </button>
           </div>
         </div>
       </header>
@@ -408,7 +520,7 @@ const SanctuaryPro = () => {
                     光中的應許 <div className="h-px flex-1 bg-white/10" />
                   </h4>
                   <p className="text-stone-300 font-light leading-loose text-lg font-serif">
-                    {result.part1}
+                    <TypewriterText text={result.part1} speed={30} />
                   </p>
                 </section>
 
@@ -417,7 +529,7 @@ const SanctuaryPro = () => {
                     愛的回應 <div className="h-px flex-1 bg-white/10" />
                   </h4>
                   <p className="text-stone-400 font-light leading-loose italic pl-6 border-l border-amber-500/20 text-lg font-serif">
-                    {result.part2}
+                    <TypewriterText text={result.part2} speed={40} />
                   </p>
                 </section>
 
@@ -427,7 +539,7 @@ const SanctuaryPro = () => {
                   </h4>
                   <div className="bg-white/[0.03] p-8 rounded-[2rem] border border-white/5">
                     <p className="text-stone-300 font-light leading-loose text-lg font-serif">
-                      {result.part3}
+                      <TypewriterText text={result.part3} speed={30} />
                     </p>
                   </div>
                 </section>
@@ -436,10 +548,11 @@ const SanctuaryPro = () => {
                 <div className="flex flex-wrap gap-4 pt-4">
                   <button
                     onClick={playSoulVoice}
-                    className={`px-8 py-4 rounded-3xl font-bold text-sm flex items-center gap-3 transition-all ${isPlaying ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'bg-white/5 text-amber-500 hover:bg-white/10 border border-amber-500/20'}`}
+                    disabled={isAudioLoading}
+                    className={`px-8 py-4 rounded-3xl font-bold text-sm flex items-center gap-3 transition-all ${isPlaying ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'bg-white/5 text-amber-500 hover:bg-white/10 border border-amber-500/20'} ${isAudioLoading ? 'opacity-70 cursor-wait' : ''}`}
                   >
-                    {isPlaying ? <StopCircle className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                    {isPlaying ? '停止播放' : '聆聽應許'}
+                    {isAudioLoading ? <Loader2 className="animate-spin w-4 h-4" /> : (isPlaying ? <StopCircle className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />)}
+                    {isAudioLoading ? '聲音生成中...' : (isPlaying ? '停止播放' : '聆聽應許')}
                   </button>
                   <button
                     onClick={generatePrayer}
@@ -455,7 +568,9 @@ const SanctuaryPro = () => {
                 {prayer && (
                   <div className="p-8 bg-amber-900/10 rounded-3xl border border-amber-500/10 animate-in zoom-in duration-500">
                     <h5 className="font-serif text-amber-600 font-bold mb-4 text-center text-xs tracking-widest uppercase">專屬禱告</h5>
-                    <p className="text-stone-300 font-light leading-loose font-serif text-center italic">「{prayer}」</p>
+                    <p className="text-stone-300 font-light leading-loose font-serif text-center italic">
+                      「<TypewriterText text={prayer} speed={30} />」
+                    </p>
                   </div>
                 )}
 
@@ -463,10 +578,15 @@ const SanctuaryPro = () => {
                 <div className="mt-16 pt-10 border-t border-white/5 text-center space-y-8">
                   <p className="text-stone-500 text-xs tracking-[0.2em] font-light">今天就到這裡也很好，願你帶著這份光走一小段路。</p>
                   <div className="flex justify-center gap-4">
-                    <button className="bg-[#06C755] text-white px-8 py-4 rounded-full font-bold text-xs flex items-center gap-2 hover:opacity-90 shadow-lg shadow-green-900/20 transition-all">
+                    <button
+                      onClick={handleShare}
+                      className="bg-[#06C755] text-white px-8 py-4 rounded-full font-bold text-xs flex items-center gap-2 hover:opacity-90 shadow-lg shadow-green-900/20 transition-all">
                       <Share2 className="w-4 h-4" /> 分享平安
                     </button>
-                    <button className="bg-white/5 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/10 border border-white/10 transition-all">
+                    <button
+                      onClick={handleDownload}
+                      disabled={!imageUrl}
+                      className="bg-white/5 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/10 border border-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                       <Download className="w-4 h-4" />
                     </button>
                   </div>
@@ -476,12 +596,42 @@ const SanctuaryPro = () => {
             </div>
           </article>
         )}
-      </main>
+        {/* 恩典日記 (History) */}
+        {history.length > 0 && (
+          <section className="max-w-2xl mx-auto px-6 mt-16">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="flex items-center gap-2 text-stone-500 text-xs tracking-widest uppercase hover:text-amber-500 transition-colors mb-6 mx-auto"
+            >
+              <BookOpen className="w-4 h-4" />
+              {showHistory ? '隱藏恩典日記' : '開啟恩典日記'}
+            </button>
 
-      <footer className="mt-24 border-t border-white/5 py-16 px-8 text-center">
-        <p className="text-[10px] tracking-[0.5em] font-black uppercase text-stone-700 mb-4">Sanctuary Production v2.0</p>
-      </footer>
-    </div>
+            {showHistory && (
+              <div className="grid gap-4 animate-in fade-in duration-500">
+                {history.map((entry) => (
+                  <div
+                    key={entry.id}
+                    onClick={() => loadFromHistory(entry)}
+                    className="bg-white/5 border border-white/5 rounded-2xl p-6 cursor-pointer hover:bg-white/10 hover:border-amber-500/30 transition-all group"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-amber-500/80 font-serif font-bold">{entry.reference}</span>
+                      <span className="text-[10px] text-stone-600">{entry.date}</span>
+                    </div>
+                    <p className="text-stone-400 text-sm line-clamp-2 group-hover:text-stone-200 transition-colors">{entry.verse}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )
+        }
+
+        <footer className="mt-24 border-t border-white/5 py-16 px-8 text-center">
+          <p className="text-[10px] tracking-[0.5em] font-black uppercase text-stone-700 mb-4">Sanctuary Production v2.0</p>
+        </footer>
+    </div >
   );
 };
 
