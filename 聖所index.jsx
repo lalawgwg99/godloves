@@ -563,54 +563,79 @@ const SanctuaryPro = () => {
 
       function drawText() {
         // 深色遮罩
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 標題
+        let y = 80;
+
+        // 標題「光之聖所」
         ctx.fillStyle = '#f59e0b';
-        ctx.font = 'bold 48px serif';
+        ctx.font = 'bold 52px serif';
         ctx.textAlign = 'center';
-        ctx.fillText('光之聖所', canvas.width / 2, 100);
+        ctx.fillText('光之聖所', canvas.width / 2, y);
+        y += 80;
 
         // 經文
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 56px serif';
-        const verseLines = wrapText(ctx, `「${result.verse}」`, canvas.width - 160, 56);
-        let y = 250;
+        ctx.font = 'bold 48px serif';
+        const verseLines = wrapText(ctx, `「${result.verse}」`, canvas.width - 140, 48);
         verseLines.forEach(line => {
           ctx.fillText(line, canvas.width / 2, y);
-          y += 70;
+          y += 60;
         });
 
         // 經文出處
         ctx.fillStyle = '#d4d4d8';
-        ctx.font = '32px serif';
-        ctx.fillText(`— ${result.reference}`, canvas.width / 2, y + 40);
+        ctx.font = '28px serif';
+        ctx.fillText(`— ${result.reference}`, canvas.width / 2, y + 30);
+        y += 80;
 
         // 分隔線
         ctx.strokeStyle = '#f59e0b';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(340, y + 100);
-        ctx.lineTo(740, y + 100);
+        ctx.moveTo(340, y);
+        ctx.lineTo(740, y);
         ctx.stroke();
+        y += 60;
 
-        // 祝福內容
+        // 祝福內容 Part 1（光中的應許）
         ctx.fillStyle = '#e7e5e4';
-        ctx.font = '36px serif';
+        ctx.font = '32px serif';
         ctx.textAlign = 'left';
-        const blessingLines = wrapText(ctx, result.part1, canvas.width - 160, 36);
-        y = y + 180;
-        blessingLines.forEach(line => {
-          ctx.fillText(line, 80, y);
-          y += 50;
+        const part1Lines = wrapText(ctx, result.part1, canvas.width - 140, 32);
+        part1Lines.forEach(line => {
+          ctx.fillText(line, 70, y);
+          y += 44;
         });
 
-        // 底部標記
-        ctx.fillStyle = '#78716c';
+        y += 20; // 段落間距
+
+        // 祝福內容 Part 2（愛的回應）
+        ctx.fillStyle = '#d4d4d8';
+        ctx.font = 'italic 30px serif';
+        const part2Lines = wrapText(ctx, result.part2, canvas.width - 140, 30);
+        part2Lines.forEach(line => {
+          ctx.fillText(line, 70, y);
+          y += 42;
+        });
+
+        // 底部品牌區域
+        const bottomY = canvas.height - 80;
+
+        // 分隔線
+        ctx.strokeStyle = '#78716c';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(200, bottomY);
+        ctx.lineTo(880, bottomY);
+        ctx.stroke();
+
+        // 網站連結
+        ctx.fillStyle = '#a8a29e';
         ctx.font = '24px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('godloves.pages.dev', canvas.width / 2, canvas.height - 50);
+        ctx.fillText('godloves.pages.dev', canvas.width / 2, bottomY + 40);
 
         // 轉換為圖片
         canvas.toBlob((blob) => {
