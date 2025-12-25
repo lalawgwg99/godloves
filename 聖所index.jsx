@@ -401,93 +401,78 @@ const SanctuaryPro = () => {
 
   // --- 音訊管理邏輯 ---
   const stopAudio = () => {
+    // 停止 Web Speech API
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    // 停止 Web Audio API (舊版備用)
     if (audioSourceRef.current) {
-      try { audioSourceRef.current.stop(); } catch (e) { }
+      try {
+        if (typeof audioSourceRef.current.stop === 'function') {
+          audioSourceRef.current.stop();
+        }
+      } catch (e) { }
       audioSourceRef.current = null;
     }
     setIsPlaying(false);
   };
 
-  const playSoulVoice = async () => {
+  const playSoulVoice = () => {
     if (!result) return;
     if (isPlaying) {
       stopAudio();
       return;
     }
 
+    // 🎯 使用瀏覽器內建 Web Speech API (穩定、快速、免費)
+    if (!window.speechSynthesis) {
+      alert('您的瀏覽器不支援語音合成功能');
+      return;
+    }
+
     setIsPlaying(true);
-    setIsAudioLoading(true); // 開始載入
+    setIsAudioLoading(true);
+
     try {
-      // 🔥 關鍵優化：TTS 提示詞工程 🔥
-      // 分離 System Instruction (語氣設定) 與 User Prompt (朗讀內容)，避免模型混淆导致中斷
-
-      const ttsSystemInstruction = `You are a wise, loving father speaking softly to a child who is hurting. 
-      read the text with deep empathy, human-like warmth, and natural pauses. 
-      Do NOT add any introductory text. Just read the provided text directly.`;
-
       const ttsText = `${result.part1} ${result.part2}`;
+      const utterance = new SpeechSynthesisUtterance(ttsText);
 
-      const ttsBody = {
-        contents: [{ parts: [{ text: ttsText }] }],
-        systemInstruction: {
-          parts: [{ text: ttsSystemInstruction }]
-        },
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: "Charon" }
-            }
-          }
-        }
+      // 語音設定
+      utterance.lang = 'zh-TW'; // 繁體中文
+      utterance.rate = 0.85; // 語速：稍慢一點更有溫度
+      utterance.pitch = 0.95; // 音調：略低沉
+      utterance.volume = 1.0; // 音量
+
+      // 嘗試選擇最佳中文語音
+      const voices = window.speechSynthesis.getVoices();
+      const zhVoice = voices.find(v => v.lang.includes('zh-TW') || v.lang.includes('zh-CN'))
+        || voices.find(v => v.lang.includes('zh'));
+      if (zhVoice) utterance.voice = zhVoice;
+
+      utterance.onstart = () => {
+        setIsAudioLoading(false);
       };
 
-      // 🔥 重要：TTS 必須使用 v1alpha 端點
-      const data = await callGemini(`https://generativelanguage.googleapis.com/v1alpha/models/${MODEL_TTS}:generateContent`, ttsBody);
+      utterance.onend = () => {
+        setIsPlaying(false);
+        audioSourceRef.current = null;
+      };
 
-      // 詳細錯誤檢查
-      if (!data.candidates || !data.candidates[0]) {
-        console.error("TTS API 回應異常:", JSON.stringify(data, null, 2));
-        throw new Error("API 未回傳有效的語音資料");
-      }
+      utterance.onerror = (e) => {
+        console.error('TTS Error:', e);
+        setIsPlaying(false);
+        setIsAudioLoading(false);
+        alert('語音播放失敗，請重試');
+      };
 
-      const pcmData = data.candidates[0].content.parts[0].inlineData.data;
-      const mimeType = data.candidates[0].content.parts[0].inlineData.mimeType;
-      const sampleRate = parseInt(mimeType.split('rate=')[1]) || 24000;
-
-      // PCM 解碼與播放
-      const binaryString = window.atob(pcmData);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-      const pcm16 = new Int16Array(bytes.buffer);
-      const float32 = new Float32Array(pcm16.length);
-      for (let i = 0; i < pcm16.length; i++) float32[i] = pcm16[i] / 32768.0;
-
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioContextRef.current.state === 'suspended') {
-        await audioContextRef.current.resume();
-      }
-
-      const buffer = audioContextRef.current.createBuffer(1, float32.length, sampleRate);
-      buffer.getChannelData(0).set(float32);
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = buffer;
-      source.playbackRate.value = 1.1; // 🎯 1.1 倍速：保持自然度但更流暢
-      source.connect(audioContextRef.current.destination);
-
-      source.onended = () => setIsPlaying(false);
-      source.start();
-      audioSourceRef.current = source;
-      setIsAudioLoading(false); // 載入完成
+      window.speechSynthesis.speak(utterance);
+      audioSourceRef.current = utterance; // 儲存以便停止
 
     } catch (e) {
-      console.error("TTS 完整錯誤:", e);
-      console.error("錯誤訊息:", e.message);
+      console.error("TTS 錯誤:", e);
       setIsPlaying(false);
       setIsAudioLoading(false);
-      alert(`語音生成失敗：${e.message}\n\n請檢查瀏覽器控制台以獲取詳細資訊。`);
+      alert(`語音播放失敗：${e.message}`);
     }
   };
 
