@@ -1,0 +1,23 @@
+{
+    "name": "sanctuary-bible",
+    "version": "2.0.0",
+    "description": "聖所 - AI驅動的心靈聖經應用",
+    "main": "index.html",
+    "scripts": {
+        "dev": "npx serve -s . -p 3000",
+        "build": "echo 'Static site - no build needed'",
+        "preview": "npx serve -s . -p 8080"
+    },
+    "keywords": [
+        "bible",
+        "ai",
+        "spiritual",
+        "react",
+        "gemini"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "serve": "^14.2.1"
+    }
+}
