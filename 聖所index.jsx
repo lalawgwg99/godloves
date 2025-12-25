@@ -407,14 +407,16 @@ const SanctuaryPro = () => {
 
   // --- 音訊管理邏輯 ---
   const stopAudio = () => {
-    // 停止 HTML5 Audio
+    // 停止 Web Speech API
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    // 停止其他音訊
     if (audioSourceRef.current) {
       try {
         if (audioSourceRef.current instanceof Audio) {
           audioSourceRef.current.pause();
           audioSourceRef.current.currentTime = 0;
-        } else if (window.speechSynthesis) {
-          window.speechSynthesis.cancel();
         } else if (typeof audioSourceRef.current.stop === 'function') {
           audioSourceRef.current.stop();
         }
@@ -424,77 +426,77 @@ const SanctuaryPro = () => {
     setIsPlaying(false);
   };
 
-  const playSoulVoice = async () => {
+  const playSoulVoice = () => {
     if (!result) return;
     if (isPlaying) {
       stopAudio();
       return;
     }
 
+    // 🎯 使用瀏覽器內建 Web Speech API（穩定且無需 API Key）
+    if (!window.speechSynthesis) {
+      alert('您的瀏覽器不支援語音合成功能');
+      return;
+    }
+
     setIsPlaying(true);
     setIsAudioLoading(true);
 
-    try {
-      // 🎯 使用 Google Cloud Text-to-Speech API (WaveNet 高品質語音)
+    // 確保語音列表已載入
+    const loadVoices = () => {
       const ttsText = `${result.part1} ${result.part2}`;
+      const utterance = new SpeechSynthesisUtterance(ttsText);
 
-      const ttsBody = {
-        input: { text: ttsText },
-        voice: {
-          languageCode: 'cmn-TW', // 繁體中文（台灣）
-          name: 'cmn-TW-Wavenet-A', // WaveNet 女聲（溫柔）
-          ssmlGender: 'FEMALE'
-        },
-        audioConfig: {
-          audioEncoding: 'MP3',
-          speakingRate: 0.85, // 語速：稍慢更有溫度
-          pitch: -2.0, // 音調：略低沉
-          volumeGainDb: 0.0
-        }
-      };
+      // 語音設定：優化參數讓聲音更自然
+      utterance.lang = 'zh-TW'; // 繁體中文
+      utterance.rate = 0.8; // 語速：稍慢更溫暖
+      utterance.pitch = 0.9; // 音調：略低沉
+      utterance.volume = 1.0; // 音量
 
-      // 透過 Cloudflare Pages Function 代理調用
-      const data = await callGemini(
-        'https://texttospeech.googleapis.com/v1/text:synthesize',
-        ttsBody
-      );
+      // 🎯 智能選擇最佳語音引擎
+      const voices = window.speechSynthesis.getVoices();
 
-      // 解碼 Base64 音訊
-      const audioContent = data.audioContent;
-      const audioBlob = new Blob(
-        [Uint8Array.from(atob(audioContent), c => c.charCodeAt(0))],
-        { type: 'audio/mp3' }
-      );
-      const audioUrl = URL.createObjectURL(audioBlob);
+      // 優先順序：Google > Microsoft > 其他繁中 > 簡中
+      const bestVoice =
+        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google')) ||
+        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Microsoft')) ||
+        voices.find(v => v.lang.includes('zh-TW')) ||
+        voices.find(v => v.lang.includes('zh-CN') && (v.name.includes('Google') || v.name.includes('Microsoft'))) ||
+        voices.find(v => v.lang.includes('zh'));
 
-      // 播放音訊
-      const audio = new Audio(audioUrl);
-      audioSourceRef.current = audio;
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+        console.log('使用語音:', bestVoice.name, bestVoice.lang);
+      }
 
-      audio.onloadeddata = () => {
+      utterance.onstart = () => {
         setIsAudioLoading(false);
       };
 
-      audio.onended = () => {
+      utterance.onend = () => {
         setIsPlaying(false);
-        URL.revokeObjectURL(audioUrl);
         audioSourceRef.current = null;
       };
 
-      audio.onerror = (e) => {
-        console.error('Audio playback error:', e);
+      utterance.onerror = (e) => {
+        console.error('TTS Error:', e);
         setIsPlaying(false);
         setIsAudioLoading(false);
-        alert('音訊播放失敗，請重試');
+        alert('語音播放失敗，請重試');
       };
 
-      await audio.play();
+      window.speechSynthesis.speak(utterance);
+      audioSourceRef.current = utterance;
+    };
 
-    } catch (e) {
-      console.error("Google Cloud TTS 錯誤:", e);
-      setIsPlaying(false);
-      setIsAudioLoading(false);
-      alert(`語音生成失敗：${e.message}\n\n如持續失敗，請檢查 API 配置。`);
+    // 處理語音列表載入（某些瀏覽器需要時間）
+    if (window.speechSynthesis.getVoices().length > 0) {
+      loadVoices();
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = null;
+      };
     }
   };
 
