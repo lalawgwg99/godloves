@@ -648,22 +648,11 @@ const SanctuaryPro = () => {
       const blessingText = `【光之聖所】\n\n${result.part1}\n\n${result.part2}\n\n✨ https://godloves.pages.dev`;
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
-        // 先複製文字到剪貼簿
-        try {
-          await navigator.clipboard.writeText(blessingText);
-        } catch (e) {
-          console.warn('無法自動複製文字:', e);
-        }
-
-        // 分享圖片（不帶文字，讓圖片單獨成為第一則訊息）
+        // 分享會產生兩則訊息：1. 文字 2. 圖片
         await navigator.share({
+          text: blessingText,
           files: [file]
         });
-
-        // 分享完成後提示用戶貼上文字
-        setTimeout(() => {
-          alert('📷 圖片已分享！\n\n💬 祝福文字已複製到剪貼簿\n請在對話中貼上，即可完成兩則訊息的分享。');
-        }, 500);
       } else {
         // Fallback: 下載圖片並複製文字
         const url = URL.createObjectURL(cardBlob);
