@@ -645,7 +645,7 @@ const SanctuaryPro = () => {
       const file = new File([cardBlob], 'blessing.png', { type: 'image/png' });
 
       // 準備完整祝福文字（第二段訊息）
-      const blessingText = `【光之聖所】\n\n${result.part1}\n\n${result.part2}\n\n✨ godloves.pages.dev`;
+      const blessingText = `【光之聖所】\n\n${result.part1}\n\n${result.part2}\n\n✨ https://godloves.pages.dev`;
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         // 先複製文字到剪貼簿
