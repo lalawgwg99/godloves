@@ -407,14 +407,15 @@ const SanctuaryPro = () => {
 
   // --- 音訊管理邏輯 ---
   const stopAudio = () => {
-    // 停止 Web Speech API
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-    // 停止 Web Audio API (舊版備用)
+    // 停止 HTML5 Audio
     if (audioSourceRef.current) {
       try {
-        if (typeof audioSourceRef.current.stop === 'function') {
+        if (audioSourceRef.current instanceof Audio) {
+          audioSourceRef.current.pause();
+          audioSourceRef.current.currentTime = 0;
+        } else if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        } else if (typeof audioSourceRef.current.stop === 'function') {
           audioSourceRef.current.stop();
         }
       } catch (e) { }
@@ -423,16 +424,10 @@ const SanctuaryPro = () => {
     setIsPlaying(false);
   };
 
-  const playSoulVoice = () => {
+  const playSoulVoice = async () => {
     if (!result) return;
     if (isPlaying) {
       stopAudio();
-      return;
-    }
-
-    // 🎯 使用瀏覽器內建 Web Speech API (穩定、快速、免費)
-    if (!window.speechSynthesis) {
-      alert('您的瀏覽器不支援語音合成功能');
       return;
     }
 
@@ -440,55 +435,66 @@ const SanctuaryPro = () => {
     setIsAudioLoading(true);
 
     try {
+      // 🎯 使用 Google Cloud Text-to-Speech API (WaveNet 高品質語音)
       const ttsText = `${result.part1} ${result.part2}`;
-      const utterance = new SpeechSynthesisUtterance(ttsText);
 
-      // 語音設定：更自然的參數
-      utterance.lang = 'zh-TW'; // 繁體中文
-      utterance.rate = 0.75; // 更慢的語速，更有溫度
-      utterance.pitch = 0.9; // 較低沉的音調
-      utterance.volume = 1.0; // 音量
+      const ttsBody = {
+        input: { text: ttsText },
+        voice: {
+          languageCode: 'cmn-TW', // 繁體中文（台灣）
+          name: 'cmn-TW-Wavenet-A', // WaveNet 女聲（溫柔）
+          ssmlGender: 'FEMALE'
+        },
+        audioConfig: {
+          audioEncoding: 'MP3',
+          speakingRate: 0.85, // 語速：稍慢更有溫度
+          pitch: -2.0, // 音調：略低沉
+          volumeGainDb: 0.0
+        }
+      };
 
-      // 🎯 智能選擇最佳語音引擎
-      const voices = window.speechSynthesis.getVoices();
+      // 透過 Cloudflare Pages Function 代理調用
+      const data = await callGemini(
+        'https://texttospeech.googleapis.com/v1/text:synthesize',
+        ttsBody
+      );
 
-      // 優先順序：Google > Microsoft > 其他繁中 > 簡中 > 任何中文
-      const bestVoice =
-        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google')) || // Google 繁中
-        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Microsoft')) || // Microsoft 繁中
-        voices.find(v => v.lang.includes('zh-TW')) || // 任何繁中
-        voices.find(v => v.lang.includes('zh-CN') && (v.name.includes('Google') || v.name.includes('Microsoft'))) || // 高品質簡中
-        voices.find(v => v.lang.includes('zh')); // 任何中文
+      // 解碼 Base64 音訊
+      const audioContent = data.audioContent;
+      const audioBlob = new Blob(
+        [Uint8Array.from(atob(audioContent), c => c.charCodeAt(0))],
+        { type: 'audio/mp3' }
+      );
+      const audioUrl = URL.createObjectURL(audioBlob);
 
-      if (bestVoice) {
-        utterance.voice = bestVoice;
-        console.log('使用語音:', bestVoice.name, bestVoice.lang);
-      }
+      // 播放音訊
+      const audio = new Audio(audioUrl);
+      audioSourceRef.current = audio;
 
-      utterance.onstart = () => {
+      audio.onloadeddata = () => {
         setIsAudioLoading(false);
       };
 
-      utterance.onend = () => {
+      audio.onended = () => {
         setIsPlaying(false);
+        URL.revokeObjectURL(audioUrl);
         audioSourceRef.current = null;
       };
 
-      utterance.onerror = (e) => {
-        console.error('TTS Error:', e);
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
         setIsPlaying(false);
         setIsAudioLoading(false);
-        alert('語音播放失敗，請重試');
+        alert('音訊播放失敗，請重試');
       };
 
-      window.speechSynthesis.speak(utterance);
-      audioSourceRef.current = utterance; // 儲存以便停止
+      await audio.play();
 
     } catch (e) {
-      console.error("TTS 錯誤:", e);
+      console.error("Google Cloud TTS 錯誤:", e);
       setIsPlaying(false);
       setIsAudioLoading(false);
-      alert(`語音播放失敗：${e.message}`);
+      alert(`語音生成失敗：${e.message}\n\n如持續失敗，請檢查 API 配置。`);
     }
   };
 
