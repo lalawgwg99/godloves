@@ -61,8 +61,8 @@ const useAmbientSound = () => {
       masterGain.connect(ctx.destination);
       gainNodeRef.current = masterGain;
 
-      // 載入自定義音效 (YouTube Background)
-      const audioElement = new Audio('ambient.mp4');
+      // 載入自定義音效 (User Provided)
+      const audioElement = new Audio('療癒 Healing 3.mp3');
       audioElement.loop = true;
       audioElement.crossOrigin = "anonymous";
       audioRef.current = audioElement;
