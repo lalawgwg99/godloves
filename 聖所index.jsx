@@ -286,7 +286,7 @@ const SanctuaryPro = () => {
         <div className="max-w-2xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-amber-500/60" />
-            <h1 className="font-light text-xl tracking-[0.4em] uppercase text-white/95">聖所</h1>
+            <h1 className="font-light text-xl tracking-[0.4em] uppercase text-white/95">光之聖所</h1>
           </div>
           <div className="text-[10px] font-bold text-stone-500 tracking-[0.2em] border border-white/10 px-3 py-1 rounded-full uppercase">
             Sanctuary Pro
