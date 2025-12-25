@@ -564,32 +564,31 @@ const SanctuaryPro = () => {
 
       function drawText() {
         // 深色遮罩
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        let y = 80;
-
-        // 標題「光之聖所」
+        // 標題「光之聖所」放在頂部
         ctx.fillStyle = '#f59e0b';
-        ctx.font = 'bold 52px serif';
+        ctx.font = 'bold 48px serif';
         ctx.textAlign = 'center';
-        ctx.fillText('光之聖所', canvas.width / 2, y);
-        y += 80;
+        ctx.fillText('光之聖所', canvas.width / 2, 100);
+
+        // 經文和出處移到底部
+        let bottomY = canvas.height - 200;
 
         // 經文
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 48px serif';
-        const verseLines = wrapText(ctx, `「${result.verse}」`, canvas.width - 140, 48);
+        ctx.font = 'bold 44px serif';
+        const verseLines = wrapText(ctx, `「${result.verse}」`, canvas.width - 120, 44);
         verseLines.forEach(line => {
-          ctx.fillText(line, canvas.width / 2, y);
-          y += 60;
+          ctx.fillText(line, canvas.width / 2, bottomY);
+          bottomY += 56;
         });
 
         // 經文出處
         ctx.fillStyle = '#d4d4d8';
-        ctx.font = '28px serif';
-        ctx.fillText(`— ${result.reference}`, canvas.width / 2, y + 30);
-        y += 80;
+        ctx.font = '26px serif';
+        ctx.fillText(`— ${result.reference}`, canvas.width / 2, bottomY + 20);
 
         // 底部品牌區域（移除 part1 和 part2，卡片只保留經文）
         const bottomY = canvas.height - 80;
