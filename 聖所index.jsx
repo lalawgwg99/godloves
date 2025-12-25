@@ -14,7 +14,7 @@ const {
   Wind,
   History,
   BookOpen,
-  BookOpen,
+
   VolumeX,
   Plus,
   Share
@@ -38,6 +38,166 @@ const FALLBACK_BLESSING = {
   part2: "你不需要現在就變得堅強。你能夠停下來，被我抱著，這本身就是被允許的。放下那些不屬於你的重擔吧。",
   part3: "今天，請為自己預留五分鐘，深深呼吸，讓心慢慢安靜下來，領受這份無條件的平安。",
   image_prompt: "soft sacred minimalism, warm dawn light, quiet sky, gentle horizon, cinematic lighting"
+};
+
+// --- Hook: 空靈環境音效 (Web Audio API) ---
+const useAmbientSound = () => {
+  const audioCtxRef = useRef(null);
+  const gainNodeRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const initAudio = () => {
+    if (audioCtxRef.current) return;
+
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      audioCtxRef.current = ctx;
+
+      // 建立粉紅噪音 (Pink Noise) - 比白噪音更柔和
+      const bufferSize = 4096;
+      const pinkNoise = ctx.createScriptProcessor(bufferSize, 1, 1);
+      pinkNoise.onaudioprocess = (e) => {
+        const output = e.outputBuffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+          output[i] *= 0.11;
+          b6 = white * 0.115926;
+        }
+      };
+
+      // 低通濾波器：模擬遠方的風聲或空間共鳴
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 400;
+
+      // 增益節點：控制音量
+      const gainNode = ctx.createGain();
+      gainNode.gain.value = 0; // 初始靜音
+      gainNodeRef.current = gainNode;
+
+      // 連接
+      pinkNoise.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(ctx.destination);
+    } catch (e) {
+      console.warn("Audio Context init failed", e);
+    }
+  };
+
+  const toggleSound = () => {
+    if (!audioCtxRef.current) initAudio();
+    if (!audioCtxRef.current) return;
+
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+
+    const ctx = audioCtxRef.current;
+    const gainNode = gainNodeRef.current;
+    const now = ctx.currentTime;
+
+    if (isMuted) {
+      // 淡入
+      gainNode.gain.cancelScheduledValues(now);
+      gainNode.gain.linearRampToValueAtTime(0.05, now + 3); // 極低音量背景音
+      setIsMuted(false);
+    } else {
+      // 淡出
+      gainNode.gain.cancelScheduledValues(now);
+      gainNode.gain.linearRampToValueAtTime(0, now + 2);
+      setIsMuted(true);
+    }
+  };
+
+  return { isMuted, toggleSound, initAudio };
+};
+
+// --- Component: 打字機效果 ---
+const TypewriterText = ({ text, speed = 30, className, onComplete }) => {
+  const [displayedText, setDisplayedText] = useState('');
+
+  useEffect(() => {
+    setDisplayedText('');
+    let i = 0;
+    const timer = setInterval(() => {
+      if (text && i < text.length) {
+        setDisplayedText((prev) => prev + text.charAt(i));
+        i++;
+      } else {
+        clearInterval(timer);
+        if (onComplete) onComplete();
+      }
+    }, speed);
+    return () => clearInterval(timer);
+  }, [text, speed]);
+
+  return <span className={className}>{displayedText}</span>;
+};
+
+// --- Component: 加入主畫面引導 ---
+const InstallPrompt = () => {
+  const [show, setShow] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    // 簡單判斷：如果是手機且尚未安裝 (簡易邏輯)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isMobile && !isStandalone) {
+      // 延遲顯示，不要一進來就擋住
+      setTimeout(() => setShow(true), 3000);
+      setIsIOS(/iPhone|iPad|iPod/i.test(navigator.userAgent));
+    }
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5 duration-700">
+      <div className="bg-[#1c1917]/90 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl relative overflow-hidden group">
+
+        {/* 關閉按鈕 */}
+        <button
+          onClick={() => setShow(false)}
+          className="absolute top-2 right-2 p-2 text-stone-500 hover:text-white transition-colors"
+        >
+          <Plus className="w-4 h-4 rotate-45" />
+        </button>
+
+        <div className="flex items-start gap-4 pr-6">
+          {/* Icon Preview */}
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-stone-800 to-black flex items-center justify-center border border-white/10 shadow-lg shrink-0">
+            <div className="w-6 h-6 text-amber-500">
+              <svg viewBox="0 0 100 100" className="w-full h-full">
+                <path d="M50 20 L50 80 M20 50 L80 50" stroke="currentColor" strokeWidth="10" strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <h4 className="text-amber-500 font-bold text-sm tracking-wide">加入主畫面</h4>
+            <p className="text-stone-400 text-xs leading-relaxed">
+              {isIOS ? (
+                <>點擊下方瀏覽器選單 <Share className="w-3 h-3 inline mx-1" /> 並選擇「加入主畫面」，獲得完整的聖所體驗。</>
+              ) : (
+                <>點擊瀏覽器選單並選擇「安裝應用程式」或「加入主畫面」。</>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const SanctuaryPro = () => {
@@ -597,42 +757,46 @@ const SanctuaryPro = () => {
           </article>
         )}
         {/* 恩典日記 (History) */}
-        {history.length > 0 && (
-          <section className="max-w-2xl mx-auto px-6 mt-16">
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="flex items-center gap-2 text-stone-500 text-xs tracking-widest uppercase hover:text-amber-500 transition-colors mb-6 mx-auto"
-            >
-              <BookOpen className="w-4 h-4" />
-              {showHistory ? '隱藏恩典日記' : '開啟恩典日記'}
-            </button>
+      </main>
 
-            {showHistory && (
-              <div className="grid gap-4 animate-in fade-in duration-500">
-                {history.map((entry) => (
-                  <div
-                    key={entry.id}
-                    onClick={() => loadFromHistory(entry)}
-                    className="bg-white/5 border border-white/5 rounded-2xl p-6 cursor-pointer hover:bg-white/10 hover:border-amber-500/30 transition-all group"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-amber-500/80 font-serif font-bold">{entry.reference}</span>
-                      <span className="text-[10px] text-stone-600">{entry.date}</span>
-                    </div>
-                    <p className="text-stone-400 text-sm line-clamp-2 group-hover:text-stone-200 transition-colors">{entry.verse}</p>
+      {/* 恩典日記 (History) */}
+      {history.length > 0 && (
+        <section className="max-w-2xl mx-auto px-6 mt-16">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-2 text-stone-500 text-xs tracking-widest uppercase hover:text-amber-500 transition-colors mb-6 mx-auto"
+          >
+            <BookOpen className="w-4 h-4" />
+            {showHistory ? '隱藏恩典日記' : '開啟恩典日記'}
+          </button>
+
+          {showHistory && (
+            <div className="grid gap-4 animate-in fade-in duration-500">
+              {history.map((entry) => (
+                <div
+                  key={entry.id}
+                  onClick={() => loadFromHistory(entry)}
+                  className="bg-white/5 border border-white/5 rounded-2xl p-6 cursor-pointer hover:bg-white/10 hover:border-amber-500/30 transition-all group"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-amber-500/80 font-serif font-bold">{entry.reference}</span>
+                    <span className="text-[10px] text-stone-600">{entry.date}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )
-        }
+                  <p className="text-stone-400 text-sm line-clamp-2 group-hover:text-stone-200 transition-colors">{entry.verse}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )
+      }
 
-        <footer className="mt-24 border-t border-white/5 py-16 px-8 text-center">
-          <p className="text-[10px] tracking-[0.5em] font-black uppercase text-stone-700 mb-4">Sanctuary Production v2.0</p>
-          <p className="text-[10px] tracking-[0.2em] text-stone-800 font-serif opacity-60 hover:opacity-100 transition-opacity">designed by 德</p>
-        </footer>
-    </div >
+      <footer className="mt-24 border-t border-white/5 py-16 px-8 text-center">
+        <p className="text-[10px] tracking-[0.5em] font-black uppercase text-stone-700 mb-4">Sanctuary Production v2.0</p>
+        <p className="text-[10px] tracking-[0.2em] text-stone-800 font-serif opacity-60 hover:opacity-100 transition-opacity">designed by 德</p>
+      </footer>
+      <InstallPrompt />
+    </div>
   );
 };
 
