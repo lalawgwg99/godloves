@@ -447,26 +447,33 @@ const SanctuaryPro = () => {
       const ttsText = `${result.part1} ${result.part2}`;
       const utterance = new SpeechSynthesisUtterance(ttsText);
 
-      // 語音設定：優化參數讓聲音更自然
+      // 語音設定：極致優化讓聲音更接近自然人聲
       utterance.lang = 'zh-TW'; // 繁體中文
-      utterance.rate = 0.8; // 語速：稍慢更溫暖
-      utterance.pitch = 0.9; // 音調：略低沉
+      utterance.rate = 0.7; // 語速：非常慢，更有溫度與情感
+      utterance.pitch = 0.85; // 音調：較低沉，更沉穩溫暖
       utterance.volume = 1.0; // 音量
 
-      // 🎯 智能選擇最佳語音引擎
+      // 🎯 智能選擇最佳語音引擎（優先女聲，更溫柔）
       const voices = window.speechSynthesis.getVoices();
 
-      // 優先順序：Google > Microsoft > 其他繁中 > 簡中
+      // 優先順序：Google 女聲 > Microsoft 女聲 > 任何女聲 > 其他高品質語音
       const bestVoice =
+        // Google 繁中女聲
+        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google') && v.name.includes('Female')) ||
         voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google')) ||
+        // Microsoft 繁中女聲
+        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Microsoft') && v.name.includes('Female')) ||
         voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Microsoft')) ||
+        // 任何繁中女聲
+        voices.find(v => v.lang.includes('zh-TW') && v.name.toLowerCase().includes('female')) ||
         voices.find(v => v.lang.includes('zh-TW')) ||
+        // 簡中高品質
         voices.find(v => v.lang.includes('zh-CN') && (v.name.includes('Google') || v.name.includes('Microsoft'))) ||
         voices.find(v => v.lang.includes('zh'));
 
       if (bestVoice) {
         utterance.voice = bestVoice;
-        console.log('使用語音:', bestVoice.name, bestVoice.lang);
+        console.log('✨ 使用語音:', bestVoice.name, `(${bestVoice.lang})`);
       }
 
       utterance.onstart = () => {
