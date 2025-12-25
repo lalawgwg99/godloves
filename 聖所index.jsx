@@ -40,86 +40,45 @@ const FALLBACK_BLESSING = {
   image_prompt: "soft sacred minimalism, warm dawn light, quiet sky, gentle horizon, cinematic lighting"
 };
 
-// --- Hook: 空靈環境音效 (Web Audio API) - 432Hz 療癒頻率 ---
+// --- Custom Boolean Hook for Audio ---
 const useAmbientSound = () => {
+  const [isMuted, setIsMuted] = useState(true);
   const audioCtxRef = useRef(null);
   const gainNodeRef = useRef(null);
-  const oscillatorsRef = useRef([]);
-  const [isMuted, setIsMuted] = useState(true);
+  const audioRef = useRef(null); // 用來存取 HTML5 Audio Element
 
   const initAudio = () => {
     if (audioCtxRef.current) return;
 
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioContext();
-      audioCtxRef.current = ctx;
+      audioCtxRef.current = new AudioContext();
+      const ctx = audioCtxRef.current;
 
-      // 總音量控制
+      // 建立 GainNode 控制音量 (淡入淡出)
       const masterGain = ctx.createGain();
-      masterGain.gain.value = 0;
+      masterGain.gain.value = 0; // 初始靜音
       masterGain.connect(ctx.destination);
       gainNodeRef.current = masterGain;
 
-      // --- 聲音層 1: 432Hz 純淨正弦波 (核心) ---
-      const osc1 = ctx.createOscillator();
-      osc1.type = 'sine';
-      osc1.frequency.value = 432; // 宇宙頻率
-      const gain1 = ctx.createGain();
-      gain1.gain.value = 0.15; // 主音量
-      osc1.connect(gain1).connect(masterGain);
+      // 載入自定義音效 (YouTube Background)
+      const audioElement = new Audio('ambient.mp4');
+      audioElement.loop = true;
+      audioElement.crossOrigin = "anonymous";
+      audioRef.current = audioElement;
 
-      // --- 聲音層 2: 216Hz 溫暖低頻 (根基) ---
-      const osc2 = ctx.createOscillator();
-      osc2.type = 'sine'; // 使用正弦波讓低頻更圓潤
-      osc2.frequency.value = 216; // 低八度
-      const gain2 = ctx.createGain();
-      gain2.gain.value = 0.1;
-      osc2.connect(gain2).connect(masterGain);
+      // 將 Audio Element 串接到 Web Audio API
+      const track = ctx.createMediaElementSource(audioElement);
+      track.connect(masterGain);
 
-      // --- 聲音層 3: 436Hz 雙耳波差 (Binaural Beat) -> 產生 4Hz Theta 波 (深度冥想) ---
-      const osc3 = ctx.createOscillator();
-      osc3.type = 'sine';
-      osc3.frequency.value = 436;
-      const gain3 = ctx.createGain();
-      gain3.gain.value = 0.05; // 微微的波動感
-      osc3.connect(gain3).connect(masterGain);
+      // 播放 (但音量是 0)
+      audioElement.play().catch(e => console.warn("Auto-play blocked:", e));
 
-      // --- 聲音層 4: 粉紅噪音 (空氣感) ---
-      // 讓聲音不會太像「實驗室單頻音」，增加一點神聖的氣流聲
-      const bufferSize = 4096;
-      const pinkNoise = ctx.createScriptProcessor(bufferSize, 1, 1);
-      pinkNoise.onaudioprocess = (e) => {
-        const output = e.outputBuffer.getChannelData(0);
-        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1;
-          b0 = 0.99886 * b0 + white * 0.0555179;
-          b1 = 0.99332 * b1 + white * 0.0750759;
-          b2 = 0.96900 * b2 + white * 0.1538520;
-          b3 = 0.86650 * b3 + white * 0.3104856;
-          b4 = 0.55000 * b4 + white * 0.5329522;
-          b5 = -0.7616 * b5 - white * 0.0168980;
-          output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-          output[i] *= 0.11;
-          b6 = white * 0.115926;
-        }
-      };
-      const noiseGain = ctx.createGain();
-      noiseGain.gain.value = 0.05; // 極低音量背景
-
-      // 噪音濾波
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 200; // 只留低頻轟鳴
-
-      pinkNoise.connect(filter).connect(noiseGain).connect(masterGain);
-
-      // 啟動所有震盪器
-      osc1.start();
-      osc2.start();
-      osc3.start();
-      oscillatorsRef.current = [osc1, osc2, osc3];  // 雖然 ScriptProcessor 不用 start，但我們可以存著
+      // 開始淡入
+      const now = ctx.currentTime;
+      masterGain.gain.setValueAtTime(0, now);
+      masterGain.gain.linearRampToValueAtTime(1, now + 5); // 5秒淡入
+      setIsMuted(false);
 
     } catch (e) {
       console.warn("Audio Context init failed", e);
@@ -127,9 +86,10 @@ const useAmbientSound = () => {
   };
 
   const toggleSound = () => {
-    if (!audioCtxRef.current) initAudio();
-    if (!audioCtxRef.current) return;
-
+    if (!audioCtxRef.current) {
+      initAudio();
+      return;
+    }
     if (audioCtxRef.current.state === 'suspended') {
       audioCtxRef.current.resume();
     }
@@ -141,14 +101,16 @@ const useAmbientSound = () => {
     if (isMuted) {
       // 淡入
       gainNode.gain.cancelScheduledValues(now);
-      gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(1, now + 5); // 5秒慢速淡入
+      gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+      gainNode.gain.linearRampToValueAtTime(1, now + 3);
       setIsMuted(false);
+      // 確保有在轉
+      if (audioRef.current && audioRef.current.paused) audioRef.current.play();
     } else {
       // 淡出
       gainNode.gain.cancelScheduledValues(now);
       gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-      gainNode.gain.linearRampToValueAtTime(0, now + 3);
+      gainNode.gain.linearRampToValueAtTime(0, now + 2);
       setIsMuted(true);
     }
   };
@@ -457,18 +419,23 @@ const SanctuaryPro = () => {
     setIsAudioLoading(true); // 開始載入
     try {
       // 🔥 關鍵優化：TTS 提示詞工程 🔥
+      // 分離 System Instruction (語氣設定) 與 User Prompt (朗讀內容)，避免模型混淆导致中斷
 
-      // 我們不只傳送文字，還傳送了「語氣指導」(Emotional Prompting)
-      const ttsPrompt = `Please read this with deep empathy and human-like warmth. Don't sound robotic. Imagine you are a wise, loving father speaking softly to a child who is hurting. Use natural pauses, a slow pace, and a comforting tone. Text: ${result.part1} ${result.part2}`;
+      const ttsSystemInstruction = `You are a wise, loving father speaking softly to a child who is hurting. 
+      read the text with deep empathy, human-like warmth, and natural pauses. 
+      Do NOT add any introductory text. Just read the provided text directly.`;
+
+      const ttsText = `${result.part1} ${result.part2}`;
 
       const ttsBody = {
-        contents: [{ parts: [{ text: ttsPrompt }] }],
+        contents: [{ parts: [{ text: ttsText }] }],
+        systemInstruction: {
+          parts: [{ text: ttsSystemInstruction }]
+        },
         generationConfig: {
           responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: {
-              // Charon 聲音低沉，適合父親形象，配合上面的 prompt 會變得非常溫柔
-              // 若希望是女性聲音，可改為 "Aoede"
               prebuiltVoiceConfig: { voiceName: "Charon" }
             }
           }
