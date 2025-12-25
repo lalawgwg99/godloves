@@ -24,7 +24,7 @@ const {
 // API 呼叫透過 Cloudflare Pages Function 代理,API Key 安全地儲存在伺服器端
 const MODEL_TEXT = "gemini-2.5-flash-preview-09-2025";
 const MODEL_IMAGE = "imagen-4.0-generate-001";
-const MODEL_TTS = "gemini-2.5-flash-preview-tts";
+const MODEL_TTS = "gemini-2.0-flash-exp";
 
 
 // 🎨 風格錨點：確保視覺輸出的一致性與高級感
