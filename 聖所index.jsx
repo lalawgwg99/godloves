@@ -867,13 +867,13 @@ const SanctuaryPro = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
                 <div className="absolute inset-0 bg-black/20 z-10" />
 
-                {/* 經文展示 */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center text-white z-20">
-                  <p className="font-serif text-2xl md:text-4xl font-black mb-8 leading-relaxed drop-shadow-[0_4px_10px_rgba(0,0,0,1)] text-balance">
+                {/* 經文展示 - 移到底部避免遮擋圖片美感 */}
+                <div className="absolute inset-0 flex flex-col items-center justify-end p-10 pb-16 text-center text-white z-20">
+                  <p className="font-serif text-2xl md:text-4xl font-black mb-6 leading-relaxed drop-shadow-[0_4px_10px_rgba(0,0,0,1)] text-balance">
                     「{result.verse}」
                   </p>
-                  <div className="w-16 h-[1px] bg-amber-500/60 mb-6 shadow-[0_0_15px_rgba(226,179,133,0.8)]"></div>
-                  <div className="px-6 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
+                  <div className="w-16 h-[1px] bg-amber-500/60 mb-4 shadow-[0_0_15px_rgba(226,179,133,0.8)]"></div>
+                  <div className="px-6 py-2 bg-black/50 backdrop-blur-md rounded-full border border-white/10">
                     <p className="text-[10px] font-black tracking-[0.4em] uppercase opacity-90">{result.reference}</p>
                   </div>
                 </div>
