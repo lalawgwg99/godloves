@@ -474,6 +474,7 @@ const SanctuaryPro = () => {
       buffer.getChannelData(0).set(float32);
       const source = audioContextRef.current.createBufferSource();
       source.buffer = buffer;
+      source.playbackRate.value = 1.1; // 🎯 1.1 倍速：保持自然度但更流暢
       source.connect(audioContextRef.current.destination);
 
       source.onended = () => setIsPlaying(false);
