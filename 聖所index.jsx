@@ -13,16 +13,10 @@ import {
 } from 'lucide-react';
 
 /* ================= 全域配置 ================= */
-// 優先使用環境變數,否則使用硬編碼值
-const apiKey = import.meta?.env?.VITE_GEMINI_API_KEY || ""; // 請在此填入您的 API Key
+// API 呼叫透過 Cloudflare Pages Function 代理,API Key 安全地儲存在伺服器端
 const MODEL_TEXT = "gemini-2.5-flash-preview-09-2025";
 const MODEL_IMAGE = "imagen-4.0-generate-001";
 const MODEL_TTS = "gemini-2.5-flash-preview-tts";
-
-// API Key 驗證
-if (!apiKey) {
-  console.warn("⚠️ 未設定 Gemini API Key,請在程式碼第 17 行填入或設定環境變數");
-}
 
 
 // 🎨 風格錨點：確保視覺輸出的一致性與高級感
@@ -74,15 +68,16 @@ const SanctuaryPro = () => {
     }
   };
 
-  // --- 工具函式：API 呼叫 (含指數退避重試) ---
+  // --- 工具函式:API 呼叫 (透過 Cloudflare Pages Function 代理) ---
   const callGemini = async (url, body, retries = 3) => {
     const delays = [1000, 2000, 4000];
     for (let i = 0; i < retries; i++) {
       try {
-        const res = await fetch(url, {
+        // 使用 Cloudflare Pages Function 作為代理
+        const res = await fetch('/api/gemini', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify({ url, body })
         });
 
         if (!res.ok) {
@@ -100,11 +95,6 @@ const SanctuaryPro = () => {
 
   // --- 核心邏輯：靜心傾聽 (Main Flow) ---
   const handleListen = async () => {
-    // API Key 檢查
-    if (!apiKey) {
-      alert('⚠️ 請先設定 Gemini API Key\n\n請在程式碼第 17 行填入您的 API Key,或前往 https://aistudio.google.com/app/apikey 取得');
-      return;
-    }
 
     // 重置狀態
     setIsLoading(true);
@@ -132,7 +122,7 @@ const SanctuaryPro = () => {
       };
 
       // 2. 呼叫文字模型
-      const wisdomData = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent?key=${apiKey}`, wisdomBody);
+      const wisdomData = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent`, wisdomBody);
       const rawText = wisdomData.candidates[0].content.parts[0].text;
       wisdomResult = JSON.parse(cleanJsonString(rawText));
 
@@ -161,7 +151,7 @@ const SanctuaryPro = () => {
           instances: { prompt: `${STYLE_ANCHOR}, ${wisdomResult.image_prompt}` },
           parameters: { sampleCount: 1 }
         };
-        const imageData = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_IMAGE}:predict?key=${apiKey}`, imageBody);
+        const imageData = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_IMAGE}:predict`, imageBody);
         setImageUrl(`data:image/png;base64,${imageData.predictions[0].bytesBase64Encoded}`);
       } catch (imgError) {
         console.warn("Image API failed:", imgError);
@@ -212,7 +202,7 @@ const SanctuaryPro = () => {
         }
       };
 
-      const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TTS}:generateContent?key=${apiKey}`, ttsBody);
+      const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TTS}:generateContent`, ttsBody);
       const pcmData = data.candidates[0].content.parts[0].inlineData.data;
       const mimeType = data.candidates[0].content.parts[0].inlineData.mimeType;
       const sampleRate = parseInt(mimeType.split('rate=')[1]) || 24000;
@@ -251,17 +241,13 @@ const SanctuaryPro = () => {
 
   const generatePrayer = async () => {
     if (!result) return;
-    if (!apiKey) {
-      setPrayer("親愛的主,感謝祢此刻的同在。願祢的話語成為我腳前的燈,路上的光。奉主耶穌的名,阿們。");
-      return;
-    }
 
     setIsPrayerLoading(true);
     try {
       const prayerBody = {
         contents: [{ parts: [{ text: `經文:${result.verse}。請寫一段約 150 字的溫柔禱告。` }] }],
       };
-      const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent?key=${apiKey}`, prayerBody);
+      const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent`, prayerBody);
       setPrayer(data.candidates[0].content.parts[0].text);
     } catch (e) {
       console.error("Prayer generation failed:", e);
