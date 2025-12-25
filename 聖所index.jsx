@@ -234,6 +234,10 @@ const SanctuaryPro = () => {
   // --- 新增: 音訊載入狀態 ---
   const [isAudioLoading, setIsAudioLoading] = useState(false);
 
+  // --- 新增: 打字機依序顯示控制 ---
+  const [showPart2, setShowPart2] = useState(false);
+  const [showPart3, setShowPart3] = useState(false);
+
   // --- 初始化：讀取歷史與自動播放音效提示 ---
   useEffect(() => {
     const saved = localStorage.getItem('sanctuary_journal');
@@ -330,6 +334,8 @@ const SanctuaryPro = () => {
     setPrayer('');
     setImageUrl('');
     setImageLoaded(false);
+    setShowPart2(false); // 重置打字機狀態
+    setShowPart3(false);
     setStatus('正在為您尋求那光中的應許...');
     stopAudio();
 
@@ -684,29 +690,43 @@ const SanctuaryPro = () => {
                     光中的應許 <div className="h-px flex-1 bg-white/10" />
                   </h4>
                   <p className="text-stone-300 font-light leading-loose text-lg font-serif">
-                    <TypewriterText key={result.part1} text={result.part1} speed={30} />
+                    <TypewriterText
+                      key={result.part1}
+                      text={result.part1}
+                      speed={30}
+                      onComplete={() => setShowPart2(true)}
+                    />
                   </p>
                 </section>
 
-                <section className="space-y-4">
-                  <h4 className="font-serif text-amber-500 text-lg font-bold flex items-center gap-3">
-                    愛的回應 <div className="h-px flex-1 bg-white/10" />
-                  </h4>
-                  <p className="text-stone-400 font-light leading-loose italic pl-6 border-l border-amber-500/20 text-lg font-serif">
-                    <TypewriterText key={result.part2} text={result.part2} speed={40} />
-                  </p>
-                </section>
-
-                <section className="space-y-4">
-                  <h4 className="font-serif text-amber-500 text-lg font-bold flex items-center gap-3">
-                    與我同行 <div className="h-px flex-1 bg-white/10" />
-                  </h4>
-                  <div className="bg-white/[0.03] p-8 rounded-[2rem] border border-white/5">
-                    <p className="text-stone-300 font-light leading-loose text-lg font-serif">
-                      <TypewriterText key={result.part3} text={result.part3} speed={30} />
+                {showPart2 && (
+                  <section className="space-y-4 animate-in fade-in duration-500">
+                    <h4 className="font-serif text-amber-500 text-lg font-bold flex items-center gap-3">
+                      愛的回應 <div className="h-px flex-1 bg-white/10" />
+                    </h4>
+                    <p className="text-stone-400 font-light leading-loose italic pl-6 border-l border-amber-500/20 text-lg font-serif">
+                      <TypewriterText
+                        key={result.part2}
+                        text={result.part2}
+                        speed={40}
+                        onComplete={() => setShowPart3(true)}
+                      />
                     </p>
-                  </div>
-                </section>
+                  </section>
+                )}
+
+                {showPart3 && (
+                  <section className="space-y-4 animate-in fade-in duration-500">
+                    <h4 className="font-serif text-amber-500 text-lg font-bold flex items-center gap-3">
+                      與我同行 <div className="h-px flex-1 bg-white/10" />
+                    </h4>
+                    <div className="bg-white/[0.03] p-8 rounded-[2rem] border border-white/5">
+                      <p className="text-stone-300 font-light leading-loose text-lg font-serif">
+                        <TypewriterText key={result.part3} text={result.part3} speed={30} />
+                      </p>
+                    </div>
+                  </section>
+                )}
 
                 {/* 功能按鈕區 */}
                 <div className="flex flex-wrap gap-4 pt-4">
