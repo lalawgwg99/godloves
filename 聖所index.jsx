@@ -563,8 +563,8 @@ const SanctuaryPro = () => {
       }
 
       function drawText() {
-        // 深色遮罩
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        // 深色遮罩（稍微淡一點，讓背景圖更明顯）
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // 標題「光之聖所」放在頂部
@@ -573,24 +573,39 @@ const SanctuaryPro = () => {
         ctx.textAlign = 'center';
         ctx.fillText('光之聖所', canvas.width / 2, 100);
 
-        // 經文和出處移到底部
-        let bottomY = canvas.height - 200;
+        // 經文和出處移到底部（預留更多空間）
+        const verseMaxWidth = canvas.width - 160; // 左右各留 80px
+        ctx.font = 'bold 42px serif';
+        const verseLines = wrapText(ctx, `「${result.verse}」`, verseMaxWidth, 42);
 
-        // 經文
+        // 計算經文總高度
+        const lineHeight = 54;
+        const verseHeight = verseLines.length * lineHeight;
+        const referenceHeight = 30;
+        const totalTextHeight = verseHeight + referenceHeight + 40; // 40 是間距
+
+        // 從底部往上計算起始位置（預留 180px 給品牌區域）
+        let startY = canvas.height - 180 - totalTextHeight;
+
+        // 確保不會太靠上（至少離頂部 200px）
+        if (startY < 200) {
+          startY = 200;
+        }
+
+        // 繪製經文
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 44px serif';
-        const verseLines = wrapText(ctx, `「${result.verse}」`, canvas.width - 120, 44);
+        ctx.font = 'bold 42px serif';
         verseLines.forEach(line => {
-          ctx.fillText(line, canvas.width / 2, bottomY);
-          bottomY += 56;
+          ctx.fillText(line, canvas.width / 2, startY);
+          startY += lineHeight;
         });
 
         // 經文出處
         ctx.fillStyle = '#d4d4d8';
         ctx.font = '26px serif';
-        ctx.fillText(`— ${result.reference}`, canvas.width / 2, bottomY + 20);
+        ctx.fillText(`— ${result.reference}`, canvas.width / 2, startY + 30);
 
-        // 底部品牌區域（移除 part1 和 part2，卡片只保留經文）
+        // 底部品牌區域
         const brandY = canvas.height - 80;
 
         // 分隔線
