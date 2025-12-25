@@ -12,7 +12,7 @@ const {
   Mic2,
   Loader2,
   Wind
-} = window.lucide;
+} = window.LucideReact;
 
 /* ================= 全域配置 ================= */
 // API 呼叫透過 Cloudflare Pages Function 代理,API Key 安全地儲存在伺服器端
