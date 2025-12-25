@@ -156,24 +156,32 @@ const useAmbientSound = () => {
   return { isMuted, toggleSound, initAudio };
 };
 
-// --- Component: 打字機效果 ---
+// --- Component: 打字機效果 (Robust Implementation) ---
 const TypewriterText = ({ text, speed = 30, className, onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
 
   useEffect(() => {
+    // 立即重置，避免殘留
     setDisplayedText('');
-    let i = 0;
+
+    if (!text) return;
+
+    let localIndex = 0;
     const timer = setInterval(() => {
-      if (text && i < text.length) {
-        setDisplayedText((prev) => prev + text.charAt(i));
-        i++;
+      // 使用 substring 確保絕對正確的字串切片
+      // 避免依賴 previous state (可能會有 race condition)
+      if (localIndex < text.length) {
+        setDisplayedText(text.substring(0, localIndex + 1));
+        localIndex++;
       } else {
         clearInterval(timer);
         if (onComplete) onComplete();
       }
     }, speed);
+
+    // Cleanup: 清除 interval
     return () => clearInterval(timer);
-  }, [text, speed]);
+  }, [text, speed]); // 依賴項變更時，effect 會重跑
 
   return <span className={className}>{displayedText}</span>;
 };
