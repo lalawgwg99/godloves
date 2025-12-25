@@ -443,17 +443,27 @@ const SanctuaryPro = () => {
       const ttsText = `${result.part1} ${result.part2}`;
       const utterance = new SpeechSynthesisUtterance(ttsText);
 
-      // 語音設定
+      // 語音設定：更自然的參數
       utterance.lang = 'zh-TW'; // 繁體中文
-      utterance.rate = 0.85; // 語速：稍慢一點更有溫度
-      utterance.pitch = 0.95; // 音調：略低沉
+      utterance.rate = 0.75; // 更慢的語速，更有溫度
+      utterance.pitch = 0.9; // 較低沉的音調
       utterance.volume = 1.0; // 音量
 
-      // 嘗試選擇最佳中文語音
+      // 🎯 智能選擇最佳語音引擎
       const voices = window.speechSynthesis.getVoices();
-      const zhVoice = voices.find(v => v.lang.includes('zh-TW') || v.lang.includes('zh-CN'))
-        || voices.find(v => v.lang.includes('zh'));
-      if (zhVoice) utterance.voice = zhVoice;
+
+      // 優先順序：Google > Microsoft > 其他繁中 > 簡中 > 任何中文
+      const bestVoice =
+        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google')) || // Google 繁中
+        voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Microsoft')) || // Microsoft 繁中
+        voices.find(v => v.lang.includes('zh-TW')) || // 任何繁中
+        voices.find(v => v.lang.includes('zh-CN') && (v.name.includes('Google') || v.name.includes('Microsoft'))) || // 高品質簡中
+        voices.find(v => v.lang.includes('zh')); // 任何中文
+
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+        console.log('使用語音:', bestVoice.name, bestVoice.lang);
+      }
 
       utterance.onstart = () => {
         setIsAudioLoading(false);
