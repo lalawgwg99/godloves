@@ -517,41 +517,168 @@ const SanctuaryPro = () => {
   };
 
   // --- 新增功能：分享與下載 ---
+  // --- 生成精美卡片圖片 ---
+  const generateBlessingCard = async () => {
+    if (!result) return null;
+
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 卡片尺寸（適合社交媒體分享）
+      canvas.width = 1080;
+      canvas.height = 1350;
+
+      // 背景漸層
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#1c1917');
+      gradient.addColorStop(1, '#0c0a09');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 如果有圖片，繪製背景圖
+      if (imageUrl) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          ctx.globalAlpha = 0.3;
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          ctx.globalAlpha = 1.0;
+          drawText();
+        };
+        img.onerror = () => drawText();
+        img.src = imageUrl;
+      } else {
+        drawText();
+      }
+
+      function drawText() {
+        // 深色遮罩
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 標題
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 48px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('光之聖所', canvas.width / 2, 100);
+
+        // 經文
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 56px serif';
+        const verseLines = wrapText(ctx, `「${result.verse}」`, canvas.width - 160, 56);
+        let y = 250;
+        verseLines.forEach(line => {
+          ctx.fillText(line, canvas.width / 2, y);
+          y += 70;
+        });
+
+        // 經文出處
+        ctx.fillStyle = '#d4d4d8';
+        ctx.font = '32px serif';
+        ctx.fillText(`— ${result.reference}`, canvas.width / 2, y + 40);
+
+        // 分隔線
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(340, y + 100);
+        ctx.lineTo(740, y + 100);
+        ctx.stroke();
+
+        // 祝福內容
+        ctx.fillStyle = '#e7e5e4';
+        ctx.font = '36px serif';
+        ctx.textAlign = 'left';
+        const blessingLines = wrapText(ctx, result.part1, canvas.width - 160, 36);
+        y = y + 180;
+        blessingLines.forEach(line => {
+          ctx.fillText(line, 80, y);
+          y += 50;
+        });
+
+        // 底部標記
+        ctx.fillStyle = '#78716c';
+        ctx.font = '24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('godloves.pages.dev', canvas.width / 2, canvas.height - 50);
+
+        // 轉換為圖片
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, 'image/png');
+      }
+
+      // 文字換行輔助函式
+      function wrapText(context, text, maxWidth, fontSize) {
+        const words = text.split('');
+        const lines = [];
+        let currentLine = '';
+
+        words.forEach(char => {
+          const testLine = currentLine + char;
+          const metrics = context.measureText(testLine);
+          if (metrics.width > maxWidth && currentLine.length > 0) {
+            lines.push(currentLine);
+            currentLine = char;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        lines.push(currentLine);
+        return lines;
+      }
+    });
+  };
+
   const handleShare = async () => {
     if (!result) return;
-    const shareText = `【光之聖所】\n\n${result.verse}\n(${result.reference})\n\n${result.part1}\n\n願這份平安也臨到你。`;
 
-    if (navigator.share) {
-      try {
+    try {
+      const cardBlob = await generateBlessingCard();
+      const file = new File([cardBlob], 'blessing.png', { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: '來自光之聖所的祝福',
-          text: shareText,
-          url: window.location.href
+          text: `${result.verse}\n— ${result.reference}`,
+          files: [file]
         });
-      } catch (err) {
-        console.log('Share canceled');
+      } else {
+        // Fallback: 下載圖片
+        const url = URL.createObjectURL(cardBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `光之聖所_${new Date().getTime()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        alert('卡片已下載，您可以手動分享給朋友。');
       }
-    } else {
-      // Fallback: Copy to clipboard
-      try {
-        await navigator.clipboard.writeText(shareText);
-        alert("祝福已複製到剪貼簿，可以傳送給朋友了。");
-      } catch (err) {
-        alert("無法複製內容，請手動截圖分享。");
-      }
+    } catch (err) {
+      console.error('分享失敗:', err);
+      alert('分享功能暫時無法使用，請稍後再試。');
     }
   };
 
-  const handleDownload = () => {
-    if (!imageUrl) return;
+  const handleDownload = async () => {
+    if (!result) return;
 
-    // 建立一個臨時的 <a> 標籤來觸發下載
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `Sanctuary_Blessing_${new Date().getTime()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const cardBlob = await generateBlessingCard();
+      const url = URL.createObjectURL(cardBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `光之聖所_祝福卡片_${new Date().getTime()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('下載失敗:', err);
+      alert('下載失敗，請稍後再試。');
+    }
   };
 
   // --- Render ---
@@ -781,13 +908,12 @@ const SanctuaryPro = () => {
                     <button
                       onClick={handleShare}
                       className="bg-[#06C755] text-white px-8 py-4 rounded-full font-bold text-xs flex items-center gap-2 hover:opacity-90 shadow-lg shadow-green-900/20 transition-all">
-                      <Share2 className="w-4 h-4" /> 分享平安
+                      <Share2 className="w-4 h-4" /> 分享祝福卡片
                     </button>
                     <button
                       onClick={handleDownload}
-                      disabled={!imageUrl}
-                      className="bg-white/5 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/10 border border-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                      <Download className="w-4 h-4" />
+                      className="bg-amber-600 text-white px-8 py-4 rounded-full font-bold text-xs flex items-center gap-2 hover:opacity-90 shadow-lg shadow-amber-900/20 transition-all">
+                      <Download className="w-4 h-4" /> 下載卡片
                     </button>
                   </div>
                 </div>
