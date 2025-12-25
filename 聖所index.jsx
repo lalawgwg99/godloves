@@ -343,14 +343,15 @@ const SanctuaryPro = () => {
     let apiError = false;
 
     try {
-      // 1. 構建 Prompt (加入安全護欄)
+      // 1. 構建 Prompt (加入安全護欄 + 避免重複)
       const safetyGuardrail = "若使用者的故事涉及極端絕望、自我傷害或過度負面情緒,請務必以『純粹的陪伴與安慰』為主,嚴禁給予具體建議、批判或說教。語氣需如慈父般溫柔。";
-      const wisdomPrompt = `使用者狀態:${selectedMood}。${userStory ? `心事:${userStory}` : ''}`;
+      const diversityHint = "聖經內容豐富，請每次選擇不同的經文，避免重複使用相同章節。可從詩篇、箴言、以賽亞書、約翰福音、羅馬書等不同書卷中選擇。";
+      const wisdomPrompt = `使用者狀態:${selectedMood}。${userStory ? `心事:${userStory}` : ''}。時間戳:${Date.now()}`;
 
       const wisdomBody = {
         contents: [{ parts: [{ text: wisdomPrompt }] }],
         systemInstruction: {
-          parts: [{ text: `你是一位慈愛、溫柔、安定人心的聲音。${safetyGuardrail}\n請輸出 JSON,包含: verse, reference, part1, part2, part3, image_prompt` }]
+          parts: [{ text: `你是一位慈愛、溫柔、安定人心的聲音。${safetyGuardrail}\n${diversityHint}\n請輸出 JSON,包含: verse, reference, part1, part2, part3, image_prompt` }]
         },
         generationConfig: { responseMimeType: "application/json" }
       };
@@ -590,37 +591,7 @@ const SanctuaryPro = () => {
         ctx.fillText(`— ${result.reference}`, canvas.width / 2, y + 30);
         y += 80;
 
-        // 分隔線
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(340, y);
-        ctx.lineTo(740, y);
-        ctx.stroke();
-        y += 60;
-
-        // 祝福內容 Part 1（光中的應許）
-        ctx.fillStyle = '#e7e5e4';
-        ctx.font = '32px serif';
-        ctx.textAlign = 'left';
-        const part1Lines = wrapText(ctx, result.part1, canvas.width - 140, 32);
-        part1Lines.forEach(line => {
-          ctx.fillText(line, 70, y);
-          y += 44;
-        });
-
-        y += 20; // 段落間距
-
-        // 祝福內容 Part 2（愛的回應）
-        ctx.fillStyle = '#d4d4d8';
-        ctx.font = 'italic 30px serif';
-        const part2Lines = wrapText(ctx, result.part2, canvas.width - 140, 30);
-        part2Lines.forEach(line => {
-          ctx.fillText(line, 70, y);
-          y += 42;
-        });
-
-        // 底部品牌區域
+        // 底部品牌區域（移除 part1 和 part2，卡片只保留經文）
         const bottomY = canvas.height - 80;
 
         // 分隔線
@@ -669,17 +640,22 @@ const SanctuaryPro = () => {
     if (!result) return;
 
     try {
+      // 生成卡片圖片
       const cardBlob = await generateBlessingCard();
       const file = new File([cardBlob], 'blessing.png', { type: 'image/png' });
 
+      // 準備完整祝福文字（第二段訊息）
+      const blessingText = `【光之聖所】\n\n${result.part1}\n\n${result.part2}\n\n✨ godloves.pages.dev`;
+
       if (navigator.share && navigator.canShare({ files: [file] })) {
+        // 分享卡片圖片 + 祝福文字
         await navigator.share({
           title: '來自光之聖所的祝福',
-          text: `${result.verse}\n— ${result.reference}`,
+          text: blessingText,
           files: [file]
         });
       } else {
-        // Fallback: 下載圖片
+        // Fallback: 下載圖片並複製文字
         const url = URL.createObjectURL(cardBlob);
         const link = document.createElement('a');
         link.href = url;
@@ -688,7 +664,14 @@ const SanctuaryPro = () => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        alert('卡片已下載，您可以手動分享給朋友。');
+
+        // 複製祝福文字到剪貼簿
+        try {
+          await navigator.clipboard.writeText(blessingText);
+          alert('✅ 卡片已下載\n✅ 祝福文字已複製到剪貼簿\n\n您可以一起分享給朋友。');
+        } catch {
+          alert('卡片已下載，請手動複製祝福文字分享。');
+        }
       }
     } catch (err) {
       console.error('分享失敗:', err);
