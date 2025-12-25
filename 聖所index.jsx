@@ -715,7 +715,7 @@ const SanctuaryPro = () => {
                     光中的應許 <div className="h-px flex-1 bg-white/10" />
                   </h4>
                   <p className="text-stone-300 font-light leading-loose text-lg font-serif">
-                    <TypewriterText text={result.part1} speed={30} />
+                    <TypewriterText key={result.part1} text={result.part1} speed={30} />
                   </p>
                 </section>
 
@@ -724,7 +724,7 @@ const SanctuaryPro = () => {
                     愛的回應 <div className="h-px flex-1 bg-white/10" />
                   </h4>
                   <p className="text-stone-400 font-light leading-loose italic pl-6 border-l border-amber-500/20 text-lg font-serif">
-                    <TypewriterText text={result.part2} speed={40} />
+                    <TypewriterText key={result.part2} text={result.part2} speed={40} />
                   </p>
                 </section>
 
@@ -734,7 +734,7 @@ const SanctuaryPro = () => {
                   </h4>
                   <div className="bg-white/[0.03] p-8 rounded-[2rem] border border-white/5">
                     <p className="text-stone-300 font-light leading-loose text-lg font-serif">
-                      <TypewriterText text={result.part3} speed={30} />
+                      <TypewriterText key={result.part3} text={result.part3} speed={30} />
                     </p>
                   </div>
                 </section>
@@ -764,7 +764,7 @@ const SanctuaryPro = () => {
                   <div className="p-8 bg-amber-900/10 rounded-3xl border border-amber-500/10 animate-in zoom-in duration-500">
                     <h5 className="font-serif text-amber-600 font-bold mb-4 text-center text-xs tracking-widest uppercase">專屬禱告</h5>
                     <p className="text-stone-300 font-light leading-loose font-serif text-center italic">
-                      「<TypewriterText text={prayer} speed={30} />」
+                      「<TypewriterText key={prayer} text={prayer} speed={30} />」
                     </p>
                   </div>
                 )}
