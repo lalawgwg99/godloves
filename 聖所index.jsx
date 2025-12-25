@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
+// 使用瀏覽器全域變數 (從 CDN 載入)
+const React = window.React;
+const { useState, useRef, useEffect } = React;
+const {
   Sparkles,
   Volume2,
   StopCircle,
@@ -10,7 +12,7 @@ import {
   Mic2,
   Loader2,
   Wind
-} from 'lucide-react';
+} = window.lucide;
 
 /* ================= 全域配置 ================= */
 // API 呼叫透過 Cloudflare Pages Function 代理,API Key 安全地儲存在伺服器端
@@ -483,4 +485,6 @@ const SanctuaryPro = () => {
   );
 };
 
-export default SanctuaryPro;
+// 掛載 React 組件到 DOM
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(SanctuaryPro));
