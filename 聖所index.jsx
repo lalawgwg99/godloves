@@ -591,21 +591,21 @@ const SanctuaryPro = () => {
         ctx.fillText(`— ${result.reference}`, canvas.width / 2, bottomY + 20);
 
         // 底部品牌區域（移除 part1 和 part2，卡片只保留經文）
-        const bottomY = canvas.height - 80;
+        const brandY = canvas.height - 80;
 
         // 分隔線
         ctx.strokeStyle = '#78716c';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(200, bottomY);
-        ctx.lineTo(880, bottomY);
+        ctx.moveTo(200, brandY);
+        ctx.lineTo(880, brandY);
         ctx.stroke();
 
         // 網站連結
         ctx.fillStyle = '#a8a29e';
         ctx.font = '24px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('godloves.pages.dev', canvas.width / 2, bottomY + 40);
+        ctx.fillText('godloves.pages.dev', canvas.width / 2, brandY + 40);
 
         // 轉換為圖片
         canvas.toBlob((blob) => {
