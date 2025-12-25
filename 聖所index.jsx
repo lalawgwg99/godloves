@@ -40,10 +40,11 @@ const FALLBACK_BLESSING = {
   image_prompt: "soft sacred minimalism, warm dawn light, quiet sky, gentle horizon, cinematic lighting"
 };
 
-// --- Hook: 空靈環境音效 (Web Audio API) ---
+// --- Hook: 空靈環境音效 (Web Audio API) - 432Hz 療癒頻率 ---
 const useAmbientSound = () => {
   const audioCtxRef = useRef(null);
   const gainNodeRef = useRef(null);
+  const oscillatorsRef = useRef([]);
   const [isMuted, setIsMuted] = useState(true);
 
   const initAudio = () => {
@@ -54,7 +55,38 @@ const useAmbientSound = () => {
       const ctx = new AudioContext();
       audioCtxRef.current = ctx;
 
-      // 建立粉紅噪音 (Pink Noise) - 比白噪音更柔和
+      // 總音量控制
+      const masterGain = ctx.createGain();
+      masterGain.gain.value = 0;
+      masterGain.connect(ctx.destination);
+      gainNodeRef.current = masterGain;
+
+      // --- 聲音層 1: 432Hz 純淨正弦波 (核心) ---
+      const osc1 = ctx.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.value = 432; // 宇宙頻率
+      const gain1 = ctx.createGain();
+      gain1.gain.value = 0.15; // 主音量
+      osc1.connect(gain1).connect(masterGain);
+
+      // --- 聲音層 2: 216Hz 溫暖低頻 (根基) ---
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine'; // 使用正弦波讓低頻更圓潤
+      osc2.frequency.value = 216; // 低八度
+      const gain2 = ctx.createGain();
+      gain2.gain.value = 0.1;
+      osc2.connect(gain2).connect(masterGain);
+
+      // --- 聲音層 3: 436Hz 雙耳波差 (Binaural Beat) -> 產生 4Hz Theta 波 (深度冥想) ---
+      const osc3 = ctx.createOscillator();
+      osc3.type = 'sine';
+      osc3.frequency.value = 436;
+      const gain3 = ctx.createGain();
+      gain3.gain.value = 0.05; // 微微的波動感
+      osc3.connect(gain3).connect(masterGain);
+
+      // --- 聲音層 4: 粉紅噪音 (空氣感) ---
+      // 讓聲音不會太像「實驗室單頻音」，增加一點神聖的氣流聲
       const bufferSize = 4096;
       const pinkNoise = ctx.createScriptProcessor(bufferSize, 1, 1);
       pinkNoise.onaudioprocess = (e) => {
@@ -73,21 +105,22 @@ const useAmbientSound = () => {
           b6 = white * 0.115926;
         }
       };
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.value = 0.05; // 極低音量背景
 
-      // 低通濾波器：模擬遠方的風聲或空間共鳴
+      // 噪音濾波
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.value = 400;
+      filter.frequency.value = 200; // 只留低頻轟鳴
 
-      // 增益節點：控制音量
-      const gainNode = ctx.createGain();
-      gainNode.gain.value = 0; // 初始靜音
-      gainNodeRef.current = gainNode;
+      pinkNoise.connect(filter).connect(noiseGain).connect(masterGain);
 
-      // 連接
-      pinkNoise.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      // 啟動所有震盪器
+      osc1.start();
+      osc2.start();
+      osc3.start();
+      oscillatorsRef.current = [osc1, osc2, osc3];  // 雖然 ScriptProcessor 不用 start，但我們可以存著
+
     } catch (e) {
       console.warn("Audio Context init failed", e);
     }
@@ -108,12 +141,14 @@ const useAmbientSound = () => {
     if (isMuted) {
       // 淡入
       gainNode.gain.cancelScheduledValues(now);
-      gainNode.gain.linearRampToValueAtTime(0.05, now + 3); // 極低音量背景音
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(1, now + 5); // 5秒慢速淡入
       setIsMuted(false);
     } else {
       // 淡出
       gainNode.gain.cancelScheduledValues(now);
-      gainNode.gain.linearRampToValueAtTime(0, now + 2);
+      gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+      gainNode.gain.linearRampToValueAtTime(0, now + 3);
       setIsMuted(true);
     }
   };
