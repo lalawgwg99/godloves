@@ -24,7 +24,7 @@ const {
 // API 呼叫透過 Cloudflare Pages Function 代理,API Key 安全地儲存在伺服器端
 const MODEL_TEXT = "gemini-2.5-flash-preview-09-2025";
 const MODEL_IMAGE = "imagen-4.0-generate-001";
-const MODEL_TTS = "gemini-1.5-flash";
+const MODEL_TTS = "gemini-2.0-flash-exp"; // 只有 2.0 系列支援 TTS
 
 
 // 🎨 風格錨點：確保視覺輸出的一致性與高級感
@@ -442,7 +442,15 @@ const SanctuaryPro = () => {
         }
       };
 
-      const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TTS}:generateContent`, ttsBody);
+      // 🔥 重要：TTS 必須使用 v1alpha 端點
+      const data = await callGemini(`https://generativelanguage.googleapis.com/v1alpha/models/${MODEL_TTS}:generateContent`, ttsBody);
+
+      // 詳細錯誤檢查
+      if (!data.candidates || !data.candidates[0]) {
+        console.error("TTS API 回應異常:", JSON.stringify(data, null, 2));
+        throw new Error("API 未回傳有效的語音資料");
+      }
+
       const pcmData = data.candidates[0].content.parts[0].inlineData.data;
       const mimeType = data.candidates[0].content.parts[0].inlineData.mimeType;
       const sampleRate = parseInt(mimeType.split('rate=')[1]) || 24000;
@@ -474,11 +482,11 @@ const SanctuaryPro = () => {
       setIsAudioLoading(false); // 載入完成
 
     } catch (e) {
-
-      console.error("TTS Failed", e);
+      console.error("TTS 完整錯誤:", e);
+      console.error("錯誤訊息:", e.message);
       setIsPlaying(false);
-      setIsAudioLoading(false); // 發生錯誤也要解除載入狀態
-      alert("語音連結暫時中斷，請稍後再試。");
+      setIsAudioLoading(false);
+      alert(`語音生成失敗：${e.message}\n\n請檢查瀏覽器控制台以獲取詳細資訊。`);
     }
   };
 
