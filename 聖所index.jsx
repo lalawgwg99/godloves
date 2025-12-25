@@ -757,15 +757,34 @@ const SanctuaryPro = () => {
                   <optgroup label="心靈平靜" className="bg-stone-900">
                     <option>關於平安：當心靈感到沉重時</option>
                     <option>關於指引：當對未來感到迷惘時</option>
+                    <option>關於安息：當身心疲憊需要休息時</option>
                   </optgroup>
                   <optgroup label="情感支持" className="bg-stone-900">
                     <option>關於安慰：當感到孤單需要擁抱時</option>
                     <option>關於勇氣：當感到無力與恐懼時</option>
                     <option>關於饒恕：需要放下與和解時</option>
+                    <option>關於盼望：在黑暗中尋找光明時</option>
+                  </optgroup>
+                  <optgroup label="人際關係" className="bg-stone-900">
+                    <option>關於愛：學習無條件的愛與接納</option>
+                    <option>關於家庭：修復破碎的關係時</option>
+                    <option>關於友誼：需要真誠的陪伴時</option>
+                  </optgroup>
+                  <optgroup label="信心成長" className="bg-stone-900">
+                    <option>關於信心：當懷疑與軟弱來襲時</option>
+                    <option>關於忍耐：在等候中學習交託時</option>
+                    <option>關於謙卑：放下驕傲與掌控時</option>
+                  </optgroup>
+                  <optgroup label="療癒釋放" className="bg-stone-900">
+                    <option>關於醫治：身心靈需要恢復時</option>
+                    <option>關於釋放：被過去綑綁需要自由時</option>
+                    <option>關於更新：想要重新開始時</option>
                   </optgroup>
                   <optgroup label="生活智慧" className="bg-stone-900">
                     <option>關於重擔：當責任壓得喘不過氣時</option>
                     <option>關於感恩：想在平淡中發現恩典時</option>
+                    <option>關於智慧：面對重要抉擇時</option>
+                    <option>關於豐盛：突破匱乏思維時</option>
                   </optgroup>
                 </select>
                 <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none w-4 h-4 group-hover:text-amber-500 transition-colors" />
