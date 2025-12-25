@@ -21,7 +21,7 @@
 
 ### 2. 設定 API Key
 
-在 `聖所index.jsx` 第 16 行填入您的 API Key:
+在 `聖所index.jsx` 第 17 行填入您的 API Key:
 
 ```javascript
 const apiKey = "YOUR_API_KEY_HERE";
@@ -93,7 +93,7 @@ wrangler pages deploy . --project-name=sanctuary-bible
 
 ### 修改視覺風格
 
-在 `聖所index.jsx` 第 22 行修改 `STYLE_ANCHOR`:
+在 `聖所index.jsx` 第 28 行修改 `STYLE_ANCHOR`:
 
 ```javascript
 const STYLE_ANCHOR = "style: soft sacred minimalism, chiaroscuro lighting...";
@@ -101,7 +101,7 @@ const STYLE_ANCHOR = "style: soft sacred minimalism, chiaroscuro lighting...";
 
 ### 修改語音聲音
 
-在第 186 行修改 `voiceName`:
+在第 192 行修改 `voiceName`:
 
 ```javascript
 prebuiltVoiceConfig: { voiceName: "Charon" } // 或 "Aoede" (女聲)
