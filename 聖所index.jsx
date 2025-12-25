@@ -630,6 +630,7 @@ const SanctuaryPro = () => {
 
         <footer className="mt-24 border-t border-white/5 py-16 px-8 text-center">
           <p className="text-[10px] tracking-[0.5em] font-black uppercase text-stone-700 mb-4">Sanctuary Production v2.0</p>
+          <p className="text-[10px] tracking-[0.2em] text-stone-800 font-serif opacity-60 hover:opacity-100 transition-opacity">designed by 德</p>
         </footer>
     </div >
   );
