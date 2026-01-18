@@ -999,9 +999,10 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
       <div className="w-full max-w-xl">
 
         {/* 狀態標籤 - 增加清晰度 */}
-        <label className="block text-center text-amber-500/90 font-serif text-base tracking-[0.25em] mb-10 drop-shadow-md">
+        {/* 狀態標籤 - 增加清晰度 */}
+        <TheLogic className="block text-center text-amber-500/90 text-sm md:text-base tracking-[0.25em] mb-10 drop-shadow-md border-none opacity-90">
           ✦ 關於「{selectedMood}」✦
-        </label>
+        </TheLogic>
 
         {/* 無邊框輸入 -> 藝術框線輸入 (Artistic Border) */}
         <div className="relative group">
@@ -1021,23 +1022,17 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         </div>
 
         {/* 字數計數 */}
-        <div className="text-center mt-6 text-stone-700 text-xs font-mono tracking-wider">{charCount}/600</div>
+        <TheLogic className="text-center mt-6 text-stone-700 text-xs tracking-wider border-none">
+          {charCount}/600
+        </TheLogic>
 
         {/* 交付按鈕 - 光暈效果 */}
+        {/* 交付按鈕 - 光暈效果 */}
         <div className="mt-20 flex justify-center">
-          <button
-            onClick={handleListen}
-            className="group relative px-14 py-5"
-          >
-            {/* 光暈背景 */}
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-700/30 via-amber-600/20 to-amber-700/30 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-700 opacity-60 group-hover:opacity-100" />
-
-            {/* 按鈕內容 */}
-            <div className="relative flex items-center gap-4 text-amber-200 font-serif tracking-[0.25em] text-lg group-hover:text-white transition-colors">
-              <Wind className="w-5 h-5 opacity-70" />
-              交付與聆聽
-            </div>
-          </button>
+          <MainAction onClick={handleListen} mode={mode} className="group flex items-center gap-4 text-lg tracking-[0.25em]">
+            <Wind className="w-5 h-5 opacity-70" />
+            {mode === 'truth' ? '尋求真理' : '交付與聆聽'}
+          </MainAction>
         </div>
 
         {/* 跳過文字直接進入 */}
@@ -1077,12 +1072,12 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
           {/* 經文：像電影標題 (Grace Mode ONLY) */}
           {mode === 'grace' && result.verse && (
             <div className="text-center space-y-8 animate-in slide-in-from-bottom-10 fade-in duration-1000 delay-300">
-              <div className="inline-block px-5 py-2 border border-white/20 rounded-full text-[10px] tracking-[0.3em] text-white/60">
+              <TheLogic className="border border-white/20 px-5 py-2 rounded-full text-[10px] text-white/60 tracking-[0.3em] inline-block">
                 {result.reference}
-              </div>
-              <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl font-light text-white leading-snug drop-shadow-2xl">
+              </TheLogic>
+              <TheWord size="xl" className="font-light leading-snug drop-shadow-2xl">
                 「{result.verse}」
-              </h2>
+              </TheWord>
             </div>
           )}
 
@@ -1095,9 +1090,9 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
               <div className="space-y-32 relative">
                 {/* 1. The Refined Insight (Verse Replacement in Truth) */}
                 <div className="text-center space-y-4 animate-in fade-in slide-in-from-top-10 duration-1000">
-                  <div className="font-mono text-[10px] tracking-[0.4em] text-cyan-500/60 uppercase">
+                  <TheLogic className="text-cyan-500/60 uppercase">
                     Refinement {result.reference && ` // ${result.reference}`}
-                  </div>
+                  </TheLogic>
                   <h2 className="font-serif text-2xl md:text-5xl font-bold text-white leading-tight glitch-text px-2">
                     「{result.verse}」
                   </h2>
@@ -1106,9 +1101,9 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                 {/* 2. Central Obsidian Block (Surface & Logic) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
                   <div className="space-y-6 animate-in fade-in slide-in-from-left-10 duration-1000 delay-300">
-                    <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
+                    <TheLogic className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-cyan-400">
                       Surface Question
-                    </div>
+                    </TheLogic>
                     <p className="text-white/70 font-serif text-lg md:text-xl leading-relaxed italic">
                       <TypewriterText key={`truth-sf-${result.surface_question}`} text={result.surface_question} speed={30} onComplete={() => setShowPart2(true)} />
                     </p>
@@ -1116,9 +1111,9 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
                   {showPart2 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-10 duration-1000">
-                      <div className="inline-block px-3 py-1 bg-white/5 border border-white/10 rounded text-[9px] font-mono tracking-widest text-stone-500 uppercase">
+                      <TheLogic className="inline-block px-3 py-1 bg-white/5 border border-white/10 rounded text-stone-500">
                         Logical Analysis
-                      </div>
+                      </TheLogic>
                       <div className="space-y-4 max-h-[300px] overflow-y-auto md:overflow-visible pr-2 md:pr-0 custom-scrollbar">
                         {result.depth_logic?.map((logic, idx) => (
                           <div key={idx} className="flex gap-4 items-start group">
@@ -1153,7 +1148,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
                       <div className="relative space-y-8 md:space-y-12">
                         <div className="space-y-4">
-                          <label className="font-mono text-[9px] tracking-[0.5em] text-cyan-400/80 uppercase">Root Cause</label>
+                          <TheLogic className="text-cyan-400/80 uppercase">Root Cause</TheLogic>
                           <p className="text-white/90 font-serif text-lg md:text-2xl leading-relaxed">
                             <TypewriterText key={`truth-rc-${result.root_cause}`} text={result.root_cause} speed={25} onComplete={() => setShowPart3(true)} />
                           </p>
@@ -1161,7 +1156,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
                         {showPart3 && (
                           <div className="space-y-6 pt-12 border-t border-white/5 animate-in slide-in-from-bottom-5 duration-700">
-                            <label className="font-mono text-[9px] tracking-[0.5em] text-cyan-400 uppercase">The First Question</label>
+                            <TheLogic className="text-cyan-400 uppercase">The First Question</TheLogic>
                             <h2 className="text-2xl md:text-5xl font-serif text-white font-bold leading-tight tracking-tight">
                               {result.first_question}
                             </h2>
@@ -1187,12 +1182,14 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
           )}
 
           {/* 三段式文字：像詩集 (Grace Mode) */}
+          {/* 三段式文字：像詩集 (Grace Mode) */}
           {mode === 'grace' && (
             <div className="space-y-16">
               <div className="group">
-                <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                  光中的應許 <div className="h-px w-12 bg-amber-500/30" />
-                </h3>
+                <div className="flex items-center gap-4 mb-5 opacity-80">
+                  <TheLogic className="text-amber-500/70 border-none">光中的應許</TheLogic>
+                  <div className="h-px w-12 bg-amber-500/30" />
+                </div>
                 <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
                   <TypewriterText key={result.part1} text={result.part1} speed={25} onComplete={() => setShowPart2(true)} />
                 </p>
@@ -1200,9 +1197,10 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
               {showPart2 && (
                 <div className="group animate-in fade-in duration-700">
-                  <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                    靈魂的指引 <div className="h-px w-12 bg-amber-500/30" />
-                  </h3>
+                  <div className="flex items-center gap-4 mb-5 opacity-80">
+                    <TheLogic className="text-amber-500/70 border-none">靈魂的指引</TheLogic>
+                    <div className="h-px w-12 bg-amber-500/30" />
+                  </div>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
                     <TypewriterText key={result.part2} text={result.part2} speed={25} onComplete={() => setShowPart3(true)} />
                   </p>
@@ -1211,9 +1209,10 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
               {showPart3 && (
                 <div className="group animate-in fade-in duration-700">
-                  <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                    最終的祝福 <div className="h-px w-12 bg-amber-500/30" />
-                  </h3>
+                  <div className="flex items-center gap-4 mb-5 opacity-80">
+                    <TheLogic className="text-amber-500/70 border-none">靈魂的指引</TheLogic>
+                    <div className="h-px w-12 bg-amber-500/30" />
+                  </div>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
                     <TypewriterText key={result.part3} text={result.part3} speed={25} />
                   </p>
@@ -1320,15 +1319,10 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
         <div className="flex justify-between items-end mb-24">
           <div className="space-y-4">
-            <h2 className="font-serif text-3xl md:text-5xl text-white tracking-[0.2em] font-bold">生命之卷</h2>
-            <p className="text-stone-500 font-serif italic text-sm md:text-base">"凡留下的，皆在光中被紀念。"</p>
+            <TheWord size="xl" className="tracking-[0.2em]">生命之卷</TheWord>
+            <TheWhisper size="md">"凡留下的，皆在光中被紀念。"</TheWhisper>
           </div>
-          <button onClick={() => setShowHistory(false)} className="group flex flex-col items-center gap-2 text-stone-500 hover:text-white transition-colors">
-            <div className="p-4 rounded-full border border-white/10 group-hover:border-white/30 transition-all">
-              <X className="w-6 h-6" />
-            </div>
-            <span className="text-[9px] uppercase tracking-widest opacity-60">閉卷</span>
-          </button>
+          <GhostButton onClick={() => setShowHistory(false)} icon={X} label="閉卷" />
         </div>
 
         <div className="relative space-y-16">
