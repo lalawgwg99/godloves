@@ -487,8 +487,11 @@ const SanctuaryEthereal = () => {
 
     try {
       const safetyGuardrail = "若使用者的故事涉及極端情緒,請以純粹的陪伴與安慰為主。";
-      const diversityHint = "請每次選擇不同的經文，可從詩篇、箴言、以賽亞書、約翰福音等不同書卷中選擇。";
-      const wisdomPrompt = `使用者狀態:${selectedMood}。${userStory ? `心事:${userStory}` : ''}。時間戳:${Date.now()} `;
+      const diversityHint = "請每次選擇不同的經文，絕不重複之前的選擇。";
+      // 注入隨機靈魂擾動，確保每次生成都具備獨特視角
+      const atmospheres = ["深淵中的迴聲", "黎明前的微光", "荒原上的星火", "廢墟中的詠嘆", "極北的孤寂"];
+      const randomAtmosphere = atmospheres[Math.floor(Math.random() * atmospheres.length)];
+      const wisdomPrompt = `[當前氛圍:${randomAtmosphere}] [使用者狀態:${selectedMood}] ${userStory ? `[心事:${userStory}]` : ''} [隨機偏移量:${Math.random().toString(36).substring(7)}] `;
 
       let wisdomBody;
 
@@ -516,7 +519,7 @@ ${diversityHint}
 請輸出 JSON: { verse, reference, part1, part2, part3, image_prompt }
 ` }]
           },
-          generationConfig: { responseMimeType: "application/json" }
+          generationConfig: { responseMimeType: "application/json", temperature: 1.0, topP: 0.95 }
         };
       } else {
         // 🔨 真理模式 (蘇格拉底之鎚)
