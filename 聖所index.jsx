@@ -1173,7 +1173,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         <div className="mt-20 flex justify-center">
           <MainAction onComplete={handleListen} mode={mode} className="group flex items-center gap-4 text-lg tracking-[0.25em]">
             <Wind className="w-5 h-5 opacity-70" />
-            {mode === 'truth' ? '長按尋求真理' : '長按交付 (HOLD)'}
+            {mode === 'truth' ? '凝視深淵' : '交付靈魂'}
           </MainAction>
         </div>
 

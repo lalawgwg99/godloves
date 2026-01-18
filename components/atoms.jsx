@@ -95,7 +95,7 @@ const RitualHoldButton = ({ onComplete, children, className = "", mode = 'grace'
     const strokeColor = mode === 'truth' ? "#06b6d4" : "#f59e0b";
 
     return (
-        <div className="relative group touch-none select-none -translate-x-1/2 left-1/2 w-max">
+        <div className="relative group touch-none select-none w-max">
             {/* 修正：居中定位 wrapper */}
 
             {/* 蓄力光環 (SVG Ring) */}
