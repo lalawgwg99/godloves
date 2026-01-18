@@ -727,7 +727,7 @@ const SanctuaryEthereal = () => {
       {/* 底部區域：流式佈局 (不再重疊) */}
       <div className="shrink-0 mt-8 mb-4 flex flex-col items-center gap-6 w-full pointer-events-none">
         {/* 提示文字 */}
-        <p className="text-stone-600/50 text-[10px] tracking-[0.3em] font-light animate-pulse text-center">
+        <p className="text-stone-400 text-xs tracking-[0.2em] font-light animate-pulse text-center">
           點選一個狀態，領受溫暖
         </p>
 
@@ -763,24 +763,27 @@ const SanctuaryEthereal = () => {
 
       <div className="w-full max-w-xl">
 
-        {/* 狀態標籤 */}
-        <label className="block text-center text-amber-500/60 font-serif text-sm tracking-[0.3em] mb-10">
+        {/* 狀態標籤 - 增加清晰度 */}
+        <label className="block text-center text-amber-500/90 font-serif text-base tracking-[0.25em] mb-10 drop-shadow-md">
           ✦ 關於「{selectedMood}」✦
         </label>
 
-        {/* 無邊框輸入 - 像在虛空中傾訴 */}
-        <textarea
-          ref={inputRef}
-          value={userStory}
-          onChange={(e) => {
-            if (e.target.value.length <= 600) {
-              setUserStory(e.target.value);
-              setCharCount(e.target.value.length);
-            }
-          }}
-          placeholder="在這裡輕聲說⋯⋯&#10;&#10;你可以寫下任何事，或什麼都不寫。"
-          className="w-full bg-transparent text-center text-xl md:text-2xl text-white/90 font-serif placeholder:text-stone-700 outline-none resize-none min-h-[220px] leading-relaxed"
-        />
+        {/* 無邊框輸入 -> 藝術框線輸入 (Artistic Border) */}
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500/20 via-white/10 to-amber-500/20 rounded-2xl opacity-30 group-hover:opacity-50 transition duration-1000 blur-sm"></div>
+          <textarea
+            ref={inputRef}
+            value={userStory}
+            onChange={(e) => {
+              if (e.target.value.length <= 600) {
+                setUserStory(e.target.value);
+                setCharCount(e.target.value.length);
+              }
+            }}
+            placeholder="在這裡輕聲說⋯⋯&#10;&#10;你可以寫下任何事，或什麼都不寫。"
+            className="relative w-full bg-black/40 backdrop-blur-md text-center text-xl md:text-2xl text-white/90 font-serif placeholder:text-stone-500 focus:placeholder:text-stone-600 outline-none resize-none min-h-[260px] leading-relaxed border border-white/10 rounded-2xl p-8 focus:border-amber-500/40 focus:bg-black/60 transition-all duration-500 shadow-inner"
+          />
+        </div>
 
         {/* 字數計數 */}
         <div className="text-center mt-6 text-stone-700 text-xs font-mono tracking-wider">{charCount}/600</div>
