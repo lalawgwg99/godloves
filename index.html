@@ -41,6 +41,9 @@
   <!-- Lucide React Icons -->
   <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <!-- Babel Standalone -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
@@ -79,6 +82,22 @@
 
     .animate-in {
       animation: fade-in 1s ease-out;
+    }
+
+    @keyframes dash {
+      0% {
+        transform: translateX(0) translateY(0);
+        opacity: 0;
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateX(-400px) translateY(400px);
+        opacity: 0;
+      }
     }
   </style>
 </head>

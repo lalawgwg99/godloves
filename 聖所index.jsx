@@ -37,8 +37,17 @@ const {
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
-const MODEL_TEXT = "gemini-2.5-flash-preview-09-2025";
+const MODEL_TEXT = "gemini-3-flash";
 const MODEL_IMAGE = "imagen-4.0-generate-001";
+
+// ☁️ Cloud Sanctuary (Supabase)
+const SUPABASE_URL = "https://twtfdaglknppkdgihjfe.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_RQL4WxJyav143AUD0jvyFw_6RX4l-fj";
+let supabase = null;
+if (window.supabase) {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log("☁️ Supabase Client Initialized");
+}
 
 // 🎨 風格錨點：確保視覺輸出的一致性與高級感
 const STYLE_ANCHOR = "style: soft sacred minimalism, chiaroscuro lighting, contemplative silence, fine art photography, ethereal glow, high resolution, cinematic composition, 8k";
@@ -240,10 +249,15 @@ const SanctuaryEthereal = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showStory, setShowStory] = useState(false); // 📖 Story Modal State
   const [prayer, setPrayer] = useState('');
   const [isPrayerLoading, setIsPrayerLoading] = useState(false);
   const [showPart2, setShowPart2] = useState(false);
   const [showPart3, setShowPart3] = useState(false);
+
+  // 🤝 Phase 2: Communion (Realtime)
+  const [onlineCount, setOnlineCount] = useState(1);
+  const [meteors, setMeteors] = useState([]); // Array of timestamps for meteors
 
   // Cinematic Status Text State
   const [statusText, setStatusText] = useState("正在傾聽...");
@@ -328,17 +342,84 @@ const SanctuaryEthereal = () => {
     </div>
   );
 
+  // ☁️ Fetch Cloud Journals
+  const fetchJournals = async () => {
+    if (!supabase) return;
+    const deviceId = localStorage.getItem('sanctuary_device_id');
+    if (!deviceId) return;
+
+    const { data, error } = await supabase
+      .from('journals')
+      .select('*')
+      .eq('user_id', deviceId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Fetch failed", error);
+    } else if (data) {
+      // Map Supabase data to UI format
+      const formatted = data.map(item => ({
+        ...item,
+        date: new Date(item.created_at).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date(item.created_at).getTime()
+      }));
+      setHistory(formatted);
+    }
+  };
+
+  // Sync History on Open
+  useEffect(() => {
+    if (showHistory) fetchJournals();
+  }, [showHistory]);
+
+  const handleInteraction = () => {
+    initAudio();
+    window.removeEventListener('click', handleInteraction);
+  };
+
   // 初始化
   useEffect(() => {
     const saved = localStorage.getItem('sanctuary_journal');
     if (saved) try { setHistory(JSON.parse(saved)); } catch (e) { }
 
-    const handleInteraction = () => {
-      initAudio();
-      window.removeEventListener('click', handleInteraction);
-    };
+    // Initial Cloud Fetch
+    if (supabase) fetchJournals();
+
+    // 🤝 Realtime Connection
+    let channel;
+    if (supabase) {
+      const deviceId = localStorage.getItem('sanctuary_device_id') || 'guest';
+      channel = supabase.channel('sanctuary_room', {
+        config: {
+          presence: { key: deviceId },
+        },
+      });
+
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          setOnlineCount(Object.keys(state).length);
+        })
+        .on('broadcast', { event: 'prayer-spark' }, () => {
+          // 🌠 Trigger Meteor
+          setMeteors(prev => [...prev, Date.now()]);
+          // Auto remove meteor after animation
+          setTimeout(() => {
+            setMeteors(prev => prev.slice(1));
+          }, 3000);
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.track({ online_at: new Date().toISOString() });
+          }
+        });
+    }
+
     window.addEventListener('click', handleInteraction);
-    return () => window.removeEventListener('click', handleInteraction);
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
   // 工具函式
@@ -500,6 +581,7 @@ const SanctuaryEthereal = () => {
     audioSourceRef.current = utterance;
   };
 
+  // 生成禱告與保存
   const generatePrayer = async () => {
     if (!result) return;
     setIsPrayerLoading(true);
@@ -514,9 +596,43 @@ const SanctuaryEthereal = () => {
       const prayerBody = {
         contents: [{ parts: [{ text: promptText }] }],
       };
+
       const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent`, prayerBody);
-      setPrayer(data.candidates[0].content.parts[0].text);
+      const generatedText = data.candidates[0].content.parts[0].text;
+      setPrayer(generatedText);
+
+      // ☁️ Save to Cloud Sanctuary
+      if (supabase) {
+        try {
+          const deviceId = localStorage.getItem('sanctuary_device_id') || crypto.randomUUID();
+          if (!localStorage.getItem('sanctuary_device_id')) localStorage.setItem('sanctuary_device_id', deviceId);
+
+          const { error } = await supabase.from('journals').insert({
+            user_id: deviceId,
+            mood: selectedMood,
+            story: userStory,
+            verse: result.verse,
+            prayer: generatedText,
+            reference: result.reference || '聖所',
+            mode: mode
+          });
+          if (error) throw error;
+          console.log("☁️ Saved to Cloud Sanctuary");
+
+          // 🌠 Broadcast Global Spark
+          await supabase.channel('sanctuary_room').send({
+            type: 'broadcast',
+            event: 'prayer-spark',
+            payload: { mode: mode }
+          });
+
+        } catch (err) {
+          console.error("Cloud Save/Broadcast Failed:", err);
+        }
+      }
+
     } catch (e) {
+      console.error(e);
       setPrayer(mode === 'truth' ? "真相往往刺眼，但唯有直視它，你才能獲得真正的自由。" : "親愛的主,感謝祢此刻的同在。願祢的話語成為我腳前的燈,路上的光。奉主耶穌的名,阿們。");
     } finally {
       setIsPrayerLoading(false);
@@ -1105,6 +1221,89 @@ const SanctuaryEthereal = () => {
     <div className="relative min-h-screen bg-[#050506] text-stone-200 overflow-hidden font-sans selection:bg-amber-900/30 selection:text-amber-100">
       {/* 粒子背景 (Pass viewState) */}
       <ParticleField viewState={viewState} />
+
+      {/* 🌠 流星效果層 */}
+      {meteors.map(timestamp => (
+        <div key={timestamp} className="absolute top-0 right-0 w-full h-full pointer-events-none overflow-hidden z-20">
+          <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[2px] bg-gradient-to-l from-transparent via-amber-200 to-transparent shadow-[0_0_20px_rgba(251,191,36,0.8)] rotate-45 animate-[dash_2s_ease-out_forwards]" />
+        </div>
+      ))}
+
+      {/* 🕯️ 聖所燭光 (在線人數) */}
+      <div className="absolute top-6 right-6 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/5 animate-in fade-in duration-1000">
+        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.6)]" />
+        <span className="text-[10px] text-amber-500/80 font-mono tracking-widest">{onlineCount}</span>
+      </div>
+
+      {/* 📖 關於故事 (Help Button) */}
+      <button
+        onClick={() => setShowStory(true)}
+        className="absolute top-6 right-20 z-50 p-2 text-stone-600 hover:text-amber-500 transition-colors"
+        title="關於聖所"
+      >
+        <div className="w-5 h-5 flex items-center justify-center border border-current rounded-full text-[10px] font-serif">?</div>
+      </button>
+
+      {/* 📖 Story Modal */}
+      {showStory && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl bg-[#0c0a09] border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+
+            <button onClick={() => setShowStory(false)} className="absolute top-6 right-6 text-stone-500 hover:text-white transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="space-y-8 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+              <div className="text-center space-y-4">
+                <Feather className="w-12 h-12 text-amber-500/50 mx-auto" />
+                <h2 className="text-3xl font-serif text-amber-100 tracking-widest">關於聖所</h2>
+                <p className="text-xs text-amber-500/60 uppercase tracking-[0.3em]">The Story of Sanctuary</p>
+              </div>
+
+              <div className="prose prose-invert max-w-none prose-p:text-stone-400 prose-p:font-light prose-p:leading-loose">
+                <p>
+                  你好，我是這個虛擬聖所的建造者。<br /><br />
+                  在這個快節奏、充滿焦慮的數位時代，我們很容易在演算法的洪流中迷失了自己。
+                  我們習慣了「被餵食」資訊，卻忘記了如何「安靜」下來，傾聽內心的聲音。
+                </p>
+                <p>
+                  聖所 (Sanctuary) 不是一個宗教場所，而是一個<b>「數位避難所」</b>。
+                  這裡沒有廣告，沒有按讚，沒有社群壓力。只有你，和那一束來自雲端的光。
+                </p>
+
+                <hr className="border-white/10 my-8" />
+
+                <h3 className="text-xl font-serif text-stone-200 mb-4">使用指南</h3>
+                <ul className="space-y-4 list-none pl-0">
+                  <li className="flex gap-4">
+                    <span className="text-amber-500 font-bold">01. 選擇心境</span>
+                    <span>誠實地面對此刻的情緒。是疲憊、迷惘，還是需要勇氣？</span>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="text-amber-500 font-bold">02. 傾訴心聲</span>
+                    <span>(選填) 寫下困擾你的事。AI 蘇格拉底或牧者會為你承接這份重擔。</span>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="text-amber-500 font-bold">03. 領受恩典</span>
+                    <span>靜待數秒，領受專屬於你的經文、影像與禱告。</span>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="text-amber-500 font-bold">04. 用心禱告</span>
+                    <span>按下黃色的「禱告」按鈕，讓這份祝福化為文字，存入雲端，並化作流星祝福他人。</span>
+                  </li>
+                </ul>
+
+                <hr className="border-white/10 my-8" />
+
+                <div className="text-center text-stone-500 text-sm italic">
+                  "願這裡成為你心靈的安歇之處。"
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 視圖切換 */}
       <div className="relative z-10">
