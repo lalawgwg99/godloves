@@ -647,7 +647,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         1. 角色設定：你是看透世情的智者，語氣要如尼采般犀利，又如齊克果般深邃。
         2. 內容深度：不要給廉價建議。要討論「本質」、「存在」與「荒謬」。
         3. 形式：請用「散文詩」的格式。
-        4. 字數：400-600字。讓文字成為一把手術刀。`;
+        4. 字數：300-500字。讓文字成為一把手術刀。`;
       } else {
         promptText = `經文:${result.verse}。請寫一段「靈魂深處的禱告」。
         要求：
