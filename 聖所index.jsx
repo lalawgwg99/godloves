@@ -1006,12 +1006,12 @@ const SanctuaryEthereal = () => {
             <button
               onClick={generatePrayer}
               disabled={isPrayerLoading}
-              className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-stone-500 hover:text-white transition-all disabled:opacity-50"
+              className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-amber-500 hover:text-amber-400 transition-all disabled:opacity-50"
             >
-              <div className="p-5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
-                {isPrayerLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Heart className="w-5 h-5" />}
+              <div className="p-5 rounded-full border border-amber-500 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] group-hover:scale-105 transition-transform duration-300">
+                {isPrayerLoading ? <Loader2 className="w-5 h-5 animate-spin text-black" /> : <Heart className="w-5 h-5 text-black fill-black" />}
               </div>
-              禱告
+              <span className="font-bold">禱告</span>
             </button>
 
             <button
