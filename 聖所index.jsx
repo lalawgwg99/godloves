@@ -17,18 +17,21 @@ const {
   X,
   Loader2,
   RefreshCw,
-  ArrowLeft,
-  // New Icons for Moods
+  Sun,
+  Moon,
+  Star,
   CloudRain,
+  CloudLightning,
+  ArrowLeft,
+  Send,
+  Feather,
+  Flame,
+  Hammer,
   Compass,
   Shield,
-  Feather,
   Users,
-  Moon,
   Hourglass,
-  Sprout,
-  Sun, // Replaces generic Sparkles in header
-  Flame // Replaces generic Sparkles in main
+  Sprout
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
@@ -224,6 +227,7 @@ const ParticleField = ({ viewState }) => {
 // --- Main Component ---
 const SanctuaryEthereal = () => {
   // 狀態機：idle -> input -> processing -> result
+  const [mode, setMode] = useState('grace'); // 'grace' (恩典) | 'truth' (真理)
   const [viewState, setViewState] = useState('idle');
   const [selectedMood, setSelectedMood] = useState('');
   const [userStory, setUserStory] = useState('');
@@ -308,7 +312,7 @@ const SanctuaryEthereal = () => {
   }, []);
 
   // 工具函式
-  const cleanJsonString = (str) => str ? str.replace(/```json\n?|```/g, "").trim() : "{}";
+  const cleanJsonString = (str) => str ? str.replace(/```json\n ?| ```/g, "").trim() : "{}";
 
   const saveToHistory = (newEntry) => {
     const entry = { id: Date.now(), date: new Date().toLocaleDateString(), ...newEntry };
@@ -326,7 +330,7 @@ const SanctuaryEthereal = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url, body })
         });
-        if (!res.ok) throw new Error(`Server Busy ${res.status}`);
+        if (!res.ok) throw new Error(`Server Busy ${res.status} `);
         return await res.json();
       } catch (e) {
         if (i === retries - 1) throw e;
@@ -351,15 +355,53 @@ const SanctuaryEthereal = () => {
     try {
       const safetyGuardrail = "若使用者的故事涉及極端情緒,請以純粹的陪伴與安慰為主。";
       const diversityHint = "請每次選擇不同的經文，可從詩篇、箴言、以賽亞書、約翰福音等不同書卷中選擇。";
-      const wisdomPrompt = `使用者狀態:${selectedMood}。${userStory ? `心事:${userStory}` : ''}。時間戳:${Date.now()}`;
+      const wisdomPrompt = `使用者狀態:${selectedMood}。${userStory ? `心事:${userStory}` : ''}。時間戳:${Date.now()} `;
 
-      const wisdomBody = {
-        contents: [{ parts: [{ text: wisdomPrompt }] }],
-        systemInstruction: {
-          parts: [{ text: `你是慈愛溫柔的聲音。${safetyGuardrail}\n${diversityHint}\n請輸出 JSON: verse, reference, part1(150字), part2(120字), part3(80字), image_prompt` }]
-        },
-        generationConfig: { responseMimeType: "application/json" }
-      };
+      let wisdomBody;
+
+      if (mode === 'grace') {
+        // 🕊️ 恩典模式 (原本的療癒邏輯)
+        wisdomBody = {
+          contents: [{ parts: [{ text: wisdomPrompt }] }],
+          systemInstruction: {
+            parts: [{ text: `你是慈愛溫柔的聲音。${safetyGuardrail} \n${diversityHint} \n請輸出 JSON: verse, reference, part1(150字), part2(120字), part3(80字), image_prompt` }]
+          },
+          generationConfig: { responseMimeType: "application/json" }
+        };
+      } else {
+        // 🔨 真理模式 (蘇格拉底之鎚)
+        const socratesPrompt = `
+角色: 擁有問題之鎚的蘇格拉底(Socrates)。
+性格: 執著、好奇、坦率、尋一。拒絕廢話，拒絕廉價安慰。
+技能: 清空、詰問、洞察、反思。
+任務: 針對使用者的心事，揮舞問題之鎚，層層剝開表象，直指核心的「第一問題」。
+
+邏輯鏈:
+1. 提純問題: 探索當前困惑背後的更基礎問題。
+2. 質疑追問: 至少進行三次深入質疑。
+3. 撕破假象: 找出使用者在逃避的真相。
+4. 第一問題: 提出一個讓使用者靈魂震顫的根本問題。
+
+          請輸出 JSON:
+{
+  "type": "truth",
+    "surface_question": "表層的困惑",
+      "depth_logic": ["質疑1", "質疑2", "質疑3"],
+        "root_cause": "根本原因 (不留情面)",
+          "first_question": "第一問題 (直擊靈魂)",
+            "socrates_comment": "一句極簡的點評 (例如: '你還在騙自己。')",
+              "image_prompt": "Abstract minimalistic geometric concept art, sharp lines, high contrast, black and gold, philosophical, void, clarity"
+}
+`;
+
+        wisdomBody = {
+          contents: [{ parts: [{ text: wisdomPrompt }] }],
+          systemInstruction: {
+            parts: [{ text: socratesPrompt }]
+          },
+          generationConfig: { responseMimeType: "application/json" }
+        };
+      }
 
       const wisdomData = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent`, wisdomBody);
       wisdomResult = JSON.parse(cleanJsonString(wisdomData.candidates[0].content.parts[0].text));
@@ -614,6 +656,27 @@ const SanctuaryEthereal = () => {
       {/* 核心問題區域 */}
       <div className="relative z-10 flex flex-col items-center">
 
+        {/* 模式切換 (Grace / Truth) */}
+        <div className="flex bg-white/5 backdrop-blur-md rounded-full p-1 mb-10 border border-white/10 relative">
+          {/* 滑塊背景 */}
+          <div className={`absolute top-1 bottom-1 w-[50%] rounded-full bg-amber-500/20 transition-all duration-500 ${mode === 'grace' ? 'left-1' : 'left-[48%]'}`} />
+
+          <button
+            onClick={() => setMode('grace')}
+            className={`relative z-10 px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-500 ${mode === 'grace' ? 'text-amber-200' : 'text-stone-500 hover:text-stone-300'}`}
+          >
+            <Feather className="w-4 h-4" />
+            <span className="text-xs tracking-widest font-serif">恩典</span>
+          </button>
+          <button
+            onClick={() => setMode('truth')}
+            className={`relative z-10 px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-500 ${mode === 'truth' ? 'text-amber-200' : 'text-stone-500 hover:text-stone-300'}`}
+          >
+            <Hammer className="w-4 h-4" />
+            <span className="text-xs tracking-widest font-serif">真理</span>
+          </button>
+        </div>
+
         {/* 中心光芒 (God Rays Container) */}
         <div className="relative mb-12">
           {/* 旋轉光暈 */}
@@ -755,15 +818,56 @@ const SanctuaryEthereal = () => {
 
         <div className="max-w-2xl w-full space-y-20 pb-32">
 
-          {/* 經文：像電影標題 */}
-          <div className="text-center space-y-8">
-            <div className="inline-block px-5 py-2 border border-white/20 rounded-full text-[10px] tracking-[0.3em] text-white/60">
-              {result.reference}
+          {/* 經文：像電影標題 (Grace Mode) */}
+          {result.verse && (
+            <div className="text-center space-y-8 animate-in slide-in-from-bottom-10 fade-in duration-1000 delay-300">
+              <div className="inline-block px-5 py-2 border border-white/20 rounded-full text-[10px] tracking-[0.3em] text-white/60">
+                {result.reference}
+              </div>
+              <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl font-light text-white leading-snug drop-shadow-2xl">
+                「{result.verse}」
+              </h2>
             </div>
-            <h2 className="font-serif text-2xl md:text-4xl lg:text-5xl font-light text-white leading-snug drop-shadow-2xl">
-              「{result.verse}」
-            </h2>
-          </div>
+          )}
+
+          {/* 真理卡片 (Truth Mode) */}
+          {result.first_question && (
+            <div className="relative w-full max-w-md mx-auto aspect-[3/4] bg-[#0c0a09] border border-amber-900/30 p-8 flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95 duration-1000 delay-300 group">
+              {/* 裝飾線 */}
+              <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-amber-500/50" />
+              <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-amber-500/50" />
+              <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-amber-500/50" />
+              <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-amber-500/50" />
+
+              {/* 標題 */}
+              <h3 className="text-amber-500/80 font-serif tracking-[0.5em] text-xs mb-8 uppercase border-b border-amber-900/30 pb-4 w-1/2">
+                Hammer of Truth
+              </h3>
+
+              {/* 內容 */}
+              <div className="flex-1 flex flex-col justify-center space-y-6">
+                <p className="text-stone-500 text-xs tracking-widest uppercase">Root Cause</p>
+                <p className="text-white/80 font-serif text-lg">{result.root_cause}</p>
+
+                <div className="w-8 h-px bg-amber-900/50 mx-auto my-6" />
+
+                <p className="text-amber-500 text-xs tracking-widest uppercase">The First Question</p>
+                <h2 className="text-2xl md:text-3xl font-serif text-white font-bold leading-relaxed">
+                  {result.first_question}
+                </h2>
+              </div>
+
+              {/* 底部點評 */}
+              <div className="mt-8 pt-6 border-t border-amber-900/30 w-full">
+                <p className="text-stone-400 font-serif italic text-sm">
+                  "{result.socrates_comment}"
+                </p>
+              </div>
+
+              {/* 懸停發光 */}
+              <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            </div>
+          )}
 
           {/* 三段式文字：像詩集 */}
           <div className="space-y-16">
