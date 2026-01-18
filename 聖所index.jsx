@@ -53,7 +53,7 @@ const MOOD_PILLS = [
   { label: '想要感恩', icon: Sun, color: 'text-yellow-300' },
   { label: '關係修復', icon: Users, color: 'text-pink-300' },
   { label: '身心疲憊', icon: Moon, color: 'text-indigo-300' },
-  { label: '等候中', icon: Hourglass, color: 'text-stone-400' },
+  { label: '等候途中', icon: Hourglass, color: 'text-stone-400' },
   { label: '重新開始', icon: Sprout, color: 'text-emerald-400' }
 ];
 
@@ -654,7 +654,7 @@ const SanctuaryEthereal = () => {
 
   // 1. 儀式感首頁：沒有表單，只有一個問題
   const renderIdle = () => (
-    <div className="flex flex-col items-center justify-center min-h-screen text-center px-6 animate-in fade-in duration-1000">
+    <div className="flex flex-col items-center justify-center min-h-screen text-center px-6 pt-28 md:pt-0 animate-in fade-in duration-1000">
 
       {/* 頂部品牌 */}
       <div className="absolute top-8 left-0 right-0 flex justify-center items-center gap-3 opacity-60">
