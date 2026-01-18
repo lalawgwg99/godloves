@@ -33,7 +33,12 @@ const {
   Hourglass,
   Sprout,
   Coffee, // Donation
-  Mic // Voice Switcher
+  Mic, // Voice Switcher
+  Music,
+  Menu,
+  Settings,
+  HelpCircle,
+  ChevronRight
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
