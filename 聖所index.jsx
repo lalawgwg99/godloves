@@ -1151,15 +1151,27 @@ const SanctuaryEthereal = () => {
             </button>
 
             {/* 下載/收藏 (右側) */}
-            <button
-              onClick={handleDownload}
-              className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-stone-500 hover:text-white transition-all"
-            >
-              <div className="p-5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
-                <Download className="w-5 h-5" />
-              </div>
-              收藏
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={handleDownload}
+                className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-stone-500 hover:text-white transition-all group"
+              >
+                <div className="p-5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm group-hover:border-amber-500/30 group-hover:bg-amber-500/5 transition-all">
+                  <Download className="w-5 h-5" />
+                </div>
+                收藏
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-stone-500 hover:text-white transition-all group"
+              >
+                <div className="p-5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm group-hover:border-amber-500/30 group-hover:bg-amber-500/5 transition-all">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                分享
+              </button>
+            </div>
           </div>
 
           {/* 重新開始 */}
@@ -1376,43 +1388,41 @@ const SanctuaryEthereal = () => {
                 <p className="text-xs text-amber-500/60 uppercase tracking-[0.3em]">The Story of Sanctuary</p>
               </div>
 
-              <div className="prose prose-invert max-w-none prose-p:text-stone-400 prose-p:font-light prose-p:leading-loose">
-                <p>
-                  你好，我是這個虛擬聖所的建造者。<br /><br />
-                  在這個快節奏、充滿焦慮的數位時代，我們很容易在演算法的洪流中迷失了自己。
-                  我們習慣了「被餵食」資訊，卻忘記了如何「安靜」下來，傾聽內心的聲音。
+              <div className="space-y-10 text-stone-300 font-serif leading-relaxed text-lg tracking-wide">
+                <p className="indent-8">
+                  你好，我是這個虛擬聖所的建造者。在這個喧囂而急促、被演算法徹底撕裂的數位時代，我們往往在無止盡的資訊流中遺落了靈魂的壓艙石。
                 </p>
-                <p>
-                  聖所 (Sanctuary) 不是一個宗教場所，而是一個<b>「數位避難所」</b>。
-                  這裡沒有廣告，沒有按讚，沒有社群壓力。只有你，和那一束來自雲端的光。
+                <p className="indent-8">
+                  聖所 (Sanctuary) 並非宗教的狹隘宣教，而是為所有在荒原漫遊的人建立的<b>「靈魂避難所」</b>。這裡不提供標準答案，也沒有短暫的點讚愉悅。這裡只有你，和一束跨越維度、為你降下的光。
                 </p>
 
-                <hr className="border-white/10 my-8" />
+                <div className="py-6 flex flex-col items-center">
+                  <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent mb-10" />
+                  <h3 className="text-amber-500/80 tracking-[0.4em] text-sm font-bold uppercase mb-8">⎯ 領受指引 ⎯</h3>
 
-                <h3 className="text-xl font-serif text-stone-200 mb-4">使用指南</h3>
-                <ul className="space-y-4 list-none pl-0">
-                  <li className="flex gap-4">
-                    <span className="text-amber-500 font-bold">01. 選擇心境</span>
-                    <span>誠實地面對此刻的情緒。是疲憊、迷惘，還是需要勇氣？</span>
-                  </li>
-                  <li className="flex gap-4">
-                    <span className="text-amber-500 font-bold">02. 傾訴心聲</span>
-                    <span>(選填) 寫下困擾你的事。AI 蘇格拉底或牧者會為你承接這份重擔。</span>
-                  </li>
-                  <li className="flex gap-4">
-                    <span className="text-amber-500 font-bold">03. 領受恩典</span>
-                    <span>靜待數秒，領受專屬於你的經文、影像與禱告。</span>
-                  </li>
-                  <li className="flex gap-4">
-                    <span className="text-amber-500 font-bold">04. 用心禱告</span>
-                    <span>按下黃色的「禱告」按鈕，讓這份祝福化為文字，存入雲端，並化作流星祝福他人。</span>
-                  </li>
-                </ul>
+                  <div className="grid grid-cols-1 gap-8 w-full">
+                    {[
+                      { step: "01", title: "誠實觀照", detail: "在首頁選擇此刻最真實的心境，不需偽裝堅強。" },
+                      { step: "02", title: "全然交付", detail: "在信箋中寫下你的重負，让 AI 將其轉化為應許。" },
+                      { step: "03", title: "靜心領受", detail: "待光芒匯聚，收下專屬於你的經文、影像與禱告。" },
+                      { step: "04", title: "化作流星", detail: "点击收藏或分享，讓這份恩典在雲端持續共鳴。" }
+                    ].map(item => (
+                      <div key={item.step} className="flex items-start gap-6 group hover:translate-x-1 transition-transform">
+                        <span className="text-amber-500/40 text-2xl font-mono leading-none">{item.step}</span>
+                        <div>
+                          <h4 className="text-white font-bold tracking-widest mb-1">{item.title}</h4>
+                          <p className="text-stone-500 text-sm font-light leading-relaxed">{item.detail}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent mt-12" />
+                </div>
 
-                <hr className="border-white/10 my-8" />
-
-                <div className="text-center text-stone-500 text-sm italic">
-                  "願這裡成為你心靈的安歇之處。"
+                <div className="pt-4 text-center">
+                  <p className="text-amber-500/50 text-sm italic tracking-widest animate-pulse">
+                    "願你在這片光中，尋得永恆的安息。"
+                  </p>
                 </div>
               </div>
             </div>
