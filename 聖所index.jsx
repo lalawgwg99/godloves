@@ -145,25 +145,49 @@ const useAmbientSound = () => {
   return { isMuted, toggleSound, initAudio };
 };
 
-// --- Component: 打字機效果 ---
-const TypewriterText = ({ text, speed = 30, className, onComplete }) => {
-  const [displayedText, setDisplayedText] = useState('');
+// --- Component: 聖言顯影 (Vapor Reveal) ---
+const EtherealReveal = ({ text, speed = 40, className, onComplete }) => {
+  const [chars, setChars] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(0);
+
   useEffect(() => {
-    setDisplayedText('');
     if (!text) return;
-    let localIndex = 0;
+    const charArray = text.split('');
+    setChars(charArray);
+    setVisibleCount(0);
+
+    let current = 0;
     const timer = setInterval(() => {
-      if (localIndex < text.length) {
-        setDisplayedText(text.substring(0, localIndex + 1));
-        localIndex++;
+      if (current < charArray.length) {
+        current++;
+        setVisibleCount(current);
       } else {
         clearInterval(timer);
         if (onComplete) onComplete();
       }
     }, speed);
+
     return () => clearInterval(timer);
   }, [text, speed]);
-  return <span className={className}>{displayedText}</span>;
+
+  return (
+    <span className={className}>
+      {chars.map((char, i) => (
+        <span
+          key={i}
+          className="inline transition-all duration-1000 ease-out"
+          style={{
+            opacity: i < visibleCount ? 1 : 0,
+            filter: i < visibleCount ? 'blur(0px)' : 'blur(4px)',
+            display: 'inline-block',
+            whiteSpace: char === ' ' ? 'pre' : 'normal'
+          }}
+        >
+          {char}
+        </span>
+      ))}
+    </span>
+  );
 };
 
 // --- Component: 粒子背景 (星塵效果) ---
@@ -1144,7 +1168,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                       Surface Question
                     </TheLogic>
                     <p className="text-white/70 font-serif text-lg md:text-xl leading-relaxed italic">
-                      <TypewriterText key={`truth-sf-${result.surface_question}`} text={result.surface_question} speed={30} onComplete={() => setShowPart2(true)} />
+                      <EtherealReveal key={`truth-sf-${result.surface_question}`} text={result.surface_question} speed={30} onComplete={() => setShowPart2(true)} />
                     </p>
                   </div>
 
@@ -1189,7 +1213,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                         <div className="space-y-4">
                           <TheLogic className="text-cyan-400/80 uppercase">Root Cause</TheLogic>
                           <p className="text-white/90 font-serif text-lg md:text-2xl leading-relaxed">
-                            <TypewriterText key={`truth-rc-${result.root_cause}`} text={result.root_cause} speed={25} onComplete={() => setShowPart3(true)} />
+                            <EtherealReveal key={`truth-rc-${result.root_cause}`} text={result.root_cause} speed={25} onComplete={() => setShowPart3(true)} />
                           </p>
                         </div>
 
@@ -1230,7 +1254,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                   <div className="h-px w-12 bg-amber-500/30" />
                 </div>
                 <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
-                  <TypewriterText key={result.part1} text={result.part1} speed={25} onComplete={() => setShowPart2(true)} />
+                  <EtherealReveal key={result.part1} text={result.part1} speed={25} onComplete={() => setShowPart2(true)} />
                 </p>
               </div>
 
@@ -1241,7 +1265,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                     <div className="h-px w-12 bg-amber-500/30" />
                   </div>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
-                    <TypewriterText key={result.part2} text={result.part2} speed={25} onComplete={() => setShowPart3(true)} />
+                    <EtherealReveal key={result.part2} text={result.part2} speed={25} onComplete={() => setShowPart3(true)} />
                   </p>
                 </div>
               )}
@@ -1253,7 +1277,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                     <div className="h-px w-12 bg-amber-500/30" />
                   </div>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
-                    <TypewriterText key={result.part3} text={result.part3} speed={25} />
+                    <EtherealReveal key={result.part3} text={result.part3} speed={25} />
                   </p>
                 </div>
               )}
@@ -1266,7 +1290,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             <div className="p-8 bg-amber-900/10 rounded-2xl border border-amber-500/10 animate-in zoom-in duration-500">
               <h5 className="font-serif text-amber-600/80 font-bold mb-5 text-center text-[10px] tracking-[0.3em] uppercase">專屬禱告</h5>
               <p className="text-white/70 font-light leading-loose font-serif text-center italic">
-                「<TypewriterText key={prayer} text={prayer} speed={25} />」
+                「<EtherealReveal key={prayer} text={prayer} speed={25} />」
               </p>
             </div>
           )}
