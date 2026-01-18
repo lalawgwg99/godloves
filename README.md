@@ -1,142 +1,93 @@
-# 聖所 | Sanctuary
+# 聖所 Sanctuary v3.0 <br> *A Sanctuary for the Soul in the Digital Age*
 
-> 一個溫柔的心靈聖所,結合聖經智慧與 AI 陪伴
+> "The sanctuary is not a place, but a moment in time."
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-3.0.0-amber)
+![Protocol](https://img.shields.io/badge/Philosophy-UI_Protocol_v1.0-obsidian)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## ✨ 特色功能
+聖所 (Sanctuary) 是一個結合極致美學、哲學深度與 AI 靈性的數位修道院。它不僅僅是一個應用程式，而是一次關於「存在」的對話。
 
-- 🙏 **智慧經文推薦** - 根據心情與處境,AI 推薦合適的聖經經文
-- 🎨 **意境圖像生成** - 為每段經文生成專屬的視覺意境
-- 🔊 **溫柔語音朗讀** - 以慈愛的聲音朗讀經文與應許
-- 💬 **個人化禱告** - AI 生成專屬的禱告文
-- 🌙 **極簡美學設計** - 沉浸式的黑暗模式界面
-- 🔒 **安全的 API 管理** - API Key 安全地儲存在伺服器端
+## 🌗 二元哲學 (The Duality)
 
-## 🚀 快速開始
+本系統基於 **Philosophy-UI Protocol** 構建，提供兩種截然不同的靈性體驗模式：
 
-### 本地運行
+### 🕊️ 恩典模式 (Grace Mode)
 
-```bash
-# 使用 npx (無需安裝)
-npx serve -s . -p 3000
+* **核心隱喻**：母親的懷抱、燭光、古卷。
+* **功能**：提供溫柔的安慰、詩意的應許與極具神聖感的祝福。
+* **視覺語言**：琥珀色 (Amber) 、襯線體 (Serif)、柔和的光暈與粒子流動。
+* **適用時刻**：當你需要被接納、被理解、被愛的時候。
 
-# 或安裝後運行
-npm install
-npm run dev
-```
+### 🔨 真理模式 (Truth Mode) - *Socrates Hammer*
 
-開啟瀏覽器訪問 `http://localhost:3000`
-
-> ⚠️ **注意**: 本地運行時 API 功能無法使用,需要部署到 Cloudflare Pages 並設定環境變數
-
-## 📦 部署到 Cloudflare Pages
-
-### 方法一:透過 GitHub (推薦)
-
-1. 推送程式碼到 GitHub
-2. 登入 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-3. 進入 **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
-4. 選擇您的儲存庫 `lalawgwg99/godloves`
-5. 建置設定:
-   - **Build command**: (留空)
-   - **Build output directory**: `/`
-   - **Root directory**: `/`
-6. **環境變數設定** (重要):
-   - 點擊 **Environment variables**
-   - 新增變數:
-     - **Variable name**: `GEMINI_API_KEY`
-     - **Value**: 您的 Gemini API Key
-   - 選擇 **Production** 和 **Preview** 環境
-7. 點擊 **Save and Deploy**
-
-### 取得 Gemini API Key
-
-### 方法二:使用 Wrangler CLI
-
-```bash
-# 安裝 Wrangler
-npm install -g wrangler
-
-# 登入 Cloudflare
-wrangler login
-
-# 設定環境變數
-wrangler pages secret put GEMINI_API_KEY
-
-# 部署
-wrangler pages deploy . --project-name=godloves
-```
-
-## 🛠️ 技術架構
-
-- **前端框架**: React 18 (CDN)
-- **UI 樣式**: Tailwind CSS
-- **後端**: Cloudflare Pages Functions (Serverless)
-- **AI 模型**:
-  - 文字生成: `gemini-2.5-flash-preview-09-2025`
-  - 圖像生成: `imagen-4.0-generate-001`
-  - 語音合成: `gemini-2.5-flash-preview-tts`
-- **部署**: Cloudflare Pages
-
-## 📁 專案結構
-
-```text
-聖所聖經/
-├── functions/
-│   └── api/
-│       └── gemini.js      # API 代理函式
-├── index.html             # HTML 入口
-├── 聖所index.jsx          # React 主組件
-├── package.json           # 專案配置
-├── .gitignore            # Git 忽略檔案
-├── .env.example          # 環境變數範例
-└── README.md             # 說明文件
-```
-
-## 🔒 安全性設計
-
-### API Key 保護
-
-- ✅ API Key 儲存在 Cloudflare 環境變數,不會暴露在前端
-- ✅ 所有 API 呼叫透過 `/functions/api/gemini.js` 代理
-- ✅ 前端程式碼完全不含 API Key
-- ✅ 支援 CORS,可安全地從任何網域呼叫
-
-### 工作原理
-
-```
-使用者瀏覽器 → Cloudflare Pages Function (/api/gemini) → Gemini API
-                    ↑ (使用環境變數中的 API Key)
-```
-
-## 🎨 自訂設定
-
-### 修改視覺風格
-
-在 `聖所index.jsx` 第 22 行修改 `STYLE_ANCHOR`:
-
-```javascript
-const STYLE_ANCHOR = "style: soft sacred minimalism, chiaroscuro lighting...";
-```
-
-### 修改語音聲音
-
-在第 186 行修改 `voiceName`:
-
-```javascript
-prebuiltVoiceConfig: { voiceName: "Charon" } // 或 "Aoede" (女聲)
-```
-
-## 📝 授權
-
-MIT License - 自由使用與修改
-
-## 🙏 致謝
-
-感謝 Google Gemini API 提供強大的 AI 能力
+* **核心隱喻**：手術刀、黑曜石、激光。
+* **功能**：蘇格拉底式的靈魂拷問。不給廉價的安慰，只給摧毀虛假自我的「第一問題」。
+* **視覺語言**：電光青 (Cyan)、黑曜石 (Obsidian)、等寬字體 (Monospace)、故障藝術 (Glitch)。
+* **適用時刻**：當你感到迷惘、需要清醒、渴望看見生命真相的時候。
 
 ---
 
-### 願這個聖所成為你心靈的避風港 ✨
+## ✨ 核心功能 (Core Features)
+
+### 1. 神聖圖書館 (Divine Library) [v3.0 New]
+
+* **反重複機制**：內建隨機化引擎，強制從「舊約智慧書」、「先知書」、「福音書」或「啟示錄」中隨機選取經文，確保每次對話都是全新的啟示。
+* **深度過濾**：特別指令 AI 避開常見金句，挖掘冷門但直擊靈魂的章節。
+
+### 2. 生命之卷 (Book of Life) [v3.0 New]
+
+* **電影級回顧**：將您的靈修紀錄轉化為一條垂直發光的「生命時間軸」。
+* **雲端永存**：整合 Supabase，將您的感動銘刻於雲端，更換設備依然存留。
+
+### 3. 萬民連結 (Communion Spark) [v3.0 New]
+
+* **靈裡共振**：當這世界上的某個人完成禱告時，您的聖所天際會劃過一道流星。
+* **孤獨的終結**：您看不見他們是誰，但您知道，此刻您並不孤單。
+
+### 4. 儀式感介面 (Ritual UI)
+
+* **呼吸式等待**：沒有 Loading Circle，只有隨呼吸起伏的光球。
+* **打字機顯影**：文字不是被「顯示」出來，而是像被「銘刻」在紙上。
+* **粒子場景**：背景粒子會隨著您的心境與模式切換（金色微塵 vs 電子訊號）。
+
+---
+
+## 🛠️ 技術架構 (Temple Architecture)
+
+* **Frontend**: React 18 (Vite-less Logic), Vanilla Tailwind CSS v3.4
+* **Backend**: Cloudflare Pages Functions (Serverless Edge)
+* **Database**: Supabase (PostgreSQL + Realtime)
+* **AI Engine**:
+  * Text: Google Gemini 1.5 Pro (Roleplay Specialized)
+  * Vision: Google Imagen 3 (Cinematic Prompting)
+* **Protocol**: [Philosophy-UI-Protocol v1.0](./philosophy_ui_protocol.md)
+
+## 🚀 部署與設定 (Deployment)
+
+### 1. 環境變數 (Environment Variables)
+
+請在 Cloudflare Pages 或 `.env` 中設定以下變數：
+
+```bash
+GEMINI_API_KEY=您的_Google_AI_Key
+SUPABASE_URL=您的_Supabase_專案網址
+SUPABASE_ANON_KEY=您的_Supabase_公開金鑰
+```
+
+### 2. 啟動聖所 (Local Dev)
+
+```bash
+# 不需要安裝繁重的 Node_modules，直接啟動
+npx serve -s . -p 3000
+```
+
+> ⚠️ 注意：本地開發需透過 `functions/api/gemini.js` 代理請求，請確保您已正確設定本地的 Cloudflare Wrangler 或類似代理。
+
+## 📜 授權 (License)
+
+MIT License.
+歡迎 Fork 此聖所，為這世界建造更多靈魂的避難所。
+
+---
+*Built with code, written in light.*
