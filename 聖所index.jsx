@@ -17,7 +17,18 @@ const {
   X,
   Loader2,
   RefreshCw,
-  ArrowLeft
+  ArrowLeft,
+  // New Icons for Moods
+  CloudRain,
+  Compass,
+  Shield,
+  Feather,
+  Users,
+  Moon,
+  Hourglass,
+  Sprout,
+  Sun, // Replaces generic Sparkles in header
+  Flame // Replaces generic Sparkles in main
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
@@ -29,16 +40,16 @@ const STYLE_ANCHOR = "style: soft sacred minimalism, chiaroscuro lighting, conte
 
 // 🌈 情緒關鍵字（漂浮 Mood Pills）
 const MOOD_PILLS = [
-  { label: '感到沉重', icon: '🌧️' },
-  { label: '迷失方向', icon: '🧭' },
-  { label: '需要勇氣', icon: '🦁' },
-  { label: '尋求安慰', icon: '🤍' },
-  { label: '渴望平靜', icon: '🕊️' },
-  { label: '想要感恩', icon: '✨' },
-  { label: '關係修復', icon: '🌉' },
-  { label: '身心疲憊', icon: '🌙' },
-  { label: '等候中', icon: '⏳' },
-  { label: '重新開始', icon: '🌱' }
+  { label: '感到沉重', icon: CloudRain, color: 'text-slate-400' },
+  { label: '迷失方向', icon: Compass, color: 'text-cyan-400' },
+  { label: '需要勇氣', icon: Shield, color: 'text-amber-600' },
+  { label: '尋求安慰', icon: Heart, color: 'text-rose-400' },
+  { label: '渴望平靜', icon: Feather, color: 'text-teal-300' },
+  { label: '想要感恩', icon: Sun, color: 'text-yellow-300' },
+  { label: '關係修復', icon: Users, color: 'text-pink-300' },
+  { label: '身心疲憊', icon: Moon, color: 'text-indigo-300' },
+  { label: '等候中', icon: Hourglass, color: 'text-stone-400' },
+  { label: '重新開始', icon: Sprout, color: 'text-emerald-400' }
 ];
 
 // 🛡️ 恩典資料庫 (Fallback)
@@ -80,7 +91,8 @@ const useAmbientSound = () => {
 
       const now = ctx.currentTime;
       masterGain.gain.setValueAtTime(0, now);
-      masterGain.gain.linearRampToValueAtTime(0.6, now + 5);
+      // 🔥 Volume Reduced to 0.3
+      masterGain.gain.linearRampToValueAtTime(0.3, now + 5);
       setIsMuted(false);
     } catch (e) {
       console.warn("Audio Context init failed", e);
@@ -98,7 +110,8 @@ const useAmbientSound = () => {
     if (isMuted) {
       gainNode.gain.cancelScheduledValues(now);
       gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-      gainNode.gain.linearRampToValueAtTime(0.6, now + 3);
+      // 🔥 Volume Reduced to 0.3
+      gainNode.gain.linearRampToValueAtTime(0.3, now + 3);
       setIsMuted(false);
       if (audioRef.current && audioRef.current.paused) audioRef.current.play();
     } else {
@@ -489,7 +502,7 @@ const SanctuaryEthereal = () => {
 
       {/* 頂部品牌 */}
       <div className="absolute top-8 left-0 right-0 flex justify-center items-center gap-3 opacity-60">
-        <Sparkles className="w-4 h-4 text-amber-500/60" />
+        <Sun className="w-4 h-4 text-amber-500/60" />
         <span className="text-[10px] tracking-[0.4em] uppercase text-white/60 font-light">Sanctuary Ethereal</span>
       </div>
 
@@ -512,14 +525,14 @@ const SanctuaryEthereal = () => {
       )}
 
       {/* 核心問題 */}
-      <Sparkles className="w-10 h-10 text-amber-500/40 mb-12 animate-pulse" />
+      <Flame className="w-10 h-10 text-amber-500/40 mb-12 animate-pulse" />
       <h1 className="font-serif text-3xl md:text-5xl font-light text-white/90 mb-16 tracking-widest leading-relaxed">
         此刻，你的心<br />在哪裡流浪？
       </h1>
 
       {/* 漂浮關鍵字 (取代下拉選單) */}
-      <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
-        {MOOD_PILLS.map(({ label, icon }) => (
+      <div className="flex flex-wrap justify-center gap-3 max-w-2xl px-4">
+        {MOOD_PILLS.map(({ label, icon: Icon, color }) => (
           <button
             key={label}
             onClick={() => {
@@ -529,7 +542,7 @@ const SanctuaryEthereal = () => {
             }}
             className="group px-6 py-3.5 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-400 font-serif text-sm hover:bg-white/10 hover:border-amber-500/40 hover:text-amber-100 transition-all duration-500 flex items-center gap-2"
           >
-            <span className="opacity-70 group-hover:opacity-100 transition-opacity">{icon}</span>
+            <Icon className={`w-4 h-4 opacity-70 group-hover:opacity-100 group-hover:${color} transition-all`} />
             {label}
           </button>
         ))}
