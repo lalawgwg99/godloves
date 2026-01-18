@@ -692,22 +692,20 @@ const SanctuaryEthereal = () => {
           </button>
         </div>
 
-        {/* 中心光芒 (God Rays Container) */}
-        <div className="relative mb-12">
-          {/* 旋轉光暈 */}
-          <div className="absolute inset-0 bg-amber-500/20 blur-[60px] rounded-full animate-[pulse_4s_ease-in-out_infinite]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-conic from-transparent via-amber-500/10 to-transparent blur-xl animate-[spin_8s_linear_infinite] opacity-50" />
-
-          {/* 火焰圖標 */}
-          <Flame className="relative w-14 h-14 text-amber-400 drop-shadow-[0_0_25px_rgba(245,158,11,0.8)] animate-[bounce_3s_ease-in-out_infinite]" />
+        {/* 標題 & 火焰 */}
+        <div className="text-center mb-10 md:mb-14 space-y-6">
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-amber-500/20 blur-2xl rounded-full animate-pulse-slow"></div>
+            <Flame className="w-12 h-12 text-amber-500 relative z-10 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-breath" />
+          </div>
+          <h1 className="font-serif text-3xl md:text-4xl text-white tracking-[0.2em] leading-relaxed opacity-90">
+            此刻，你的心<br />
+            在哪裡流浪？
+          </h1>
         </div>
 
-        <h1 className="font-serif text-3xl md:text-5xl font-light text-transparent bg-clip-text bg-gradient-to-r from-stone-200 via-white to-stone-200 mb-16 tracking-[0.2em] leading-relaxed drop-shadow-2xl text-center">
-          此刻，你的心<br />在哪裡流浪？
-        </h1>
-
-        {/* 漂浮關鍵字 (Grid on Mobile, Flex on Desktop) */}
-        <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-4 max-w-2xl px-6 w-full">
+        {/* 藥丸網格 */}
+        <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-3 md:gap-4 w-full">
           {MOOD_PILLS.map(({ label, icon: Icon, color }) => (
             <button
               key={label}
@@ -716,19 +714,20 @@ const SanctuaryEthereal = () => {
                 setViewState('input');
                 setTimeout(() => inputRef.current?.focus(), 100);
               }}
-              className="group px-6 py-4 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-300 font-serif text-sm transition-all duration-500 flex items-center justify-center gap-3 hover:bg-white/10 hover:border-amber-500/50 hover:text-white hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:-translate-y-1"
+              className="group px-4 py-3 md:px-6 md:py-4 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-300 font-serif text-sm transition-all duration-500 flex items-center justify-center gap-2 md:gap-3 hover:bg-white/10 hover:border-amber-500/50 hover:text-white hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:-translate-y-1"
             >
-              <Icon className={`w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:${color} transition-all duration-500`} />
+              <Icon className={`w-3.5 h-3.5 md:w-4 md:h-4 opacity-60 group-hover:opacity-100 group-hover:${color} transition-all duration-500`} />
               <span className="tracking-widest">{label}</span>
             </button>
           ))}
         </div>
+
       </div>
 
-      {/* 底部區域：提示與支持 (Grouped to prevent overlap) */}
-      <div className="absolute bottom-10 flex flex-col items-center gap-6 w-full pointer-events-none">
+      {/* 底部區域：流式佈局 (不再重疊) */}
+      <div className="shrink-0 mt-8 mb-4 flex flex-col items-center gap-6 w-full pointer-events-none">
         {/* 提示文字 */}
-        <p className="text-stone-600/50 text-[10px] tracking-[0.3em] font-light animate-pulse">
+        <p className="text-stone-600/50 text-[10px] tracking-[0.3em] font-light animate-pulse text-center">
           點選一個狀態，領受溫暖
         </p>
 
@@ -737,7 +736,7 @@ const SanctuaryEthereal = () => {
           href="https://www.buymeacoffee.com/laladoo99"
           target="_blank"
           rel="noopener noreferrer"
-          className="pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/30 transition-all duration-300 group backdrop-blur-sm"
+          className="pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/30 transition-all duration-300 group backdrop-blur-sm shadow-lg"
         >
           <div className="p-1 rounded-full bg-amber-500/10 group-hover:bg-amber-500/20">
             <Coffee className="w-3 h-3 text-amber-500/60 group-hover:text-amber-400" />
