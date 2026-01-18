@@ -251,7 +251,35 @@ const SanctuaryEthereal = () => {
   const audioSourceRef = useRef(null);
   const { isMuted, toggleSound, initAudio } = useAmbientSound();
 
-  // Cinematic Text Cycling
+  // Voice State
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const [currentVoiceIndex, setCurrentVoiceIndex] = useState(0);
+
+  // Load Voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const allVoices = window.speechSynthesis.getVoices();
+      // Prioritize zh-TW, then zh-CN, then any zh
+      const zhVoices = allVoices.filter(v => v.lang.includes('zh-TW') || v.lang.includes('zh-HK') || v.lang.includes('zh'));
+      setAvailableVoices(zhVoices);
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    return () => { window.speechSynthesis.onvoiceschanged = null; };
+  }, []);
+
+  const cycleVoice = () => {
+    if (availableVoices.length <= 1) return;
+    setCurrentVoiceIndex((prev) => (prev + 1) % availableVoices.length);
+    // Preview the new voice briefly
+    stopAudio();
+    const voice = availableVoices[(currentVoiceIndex + 1) % availableVoices.length];
+    const u = new SpeechSynthesisUtterance("聲音測試");
+    u.voice = voice;
+    u.rate = 1.0;
+    window.speechSynthesis.speak(u);
+  };
   useEffect(() => {
     if (viewState !== 'processing') return;
 
@@ -460,11 +488,10 @@ const SanctuaryEthereal = () => {
     utterance.rate = mode === 'truth' ? 1.0 : 0.9;
     utterance.pitch = 1.0; // Restoring natural pitch to avoid robotic distortion
 
-    const voices = window.speechSynthesis.getVoices();
-    const bestVoice = voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google')) ||
-      voices.find(v => v.lang.includes('zh-TW')) ||
-      voices.find(v => v.lang.includes('zh'));
-    if (bestVoice) utterance.voice = bestVoice;
+    // Use selected voice from state
+    if (availableVoices.length > 0) {
+      utterance.voice = availableVoices[currentVoiceIndex];
+    }
 
     utterance.onend = () => setIsPlaying(false);
     utterance.onerror = () => setIsPlaying(false);
@@ -961,6 +988,19 @@ const SanctuaryEthereal = () => {
               </div>
               {isPlaying ? '靜止' : '聆聽'}
             </button>
+
+            {/* 聲音切換按鈕 (只在有多個聲音時顯示) */}
+            {availableVoices.length > 1 && (
+              <button
+                onClick={cycleVoice}
+                className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-stone-500 hover:text-white transition-all"
+              >
+                <div className="p-5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm group-hover:bg-amber-500/10 transition-colors">
+                  <Mic className="w-5 h-5" />
+                </div>
+                <span className="text-amber-500/50 text-[9px]">{availableVoices[currentVoiceIndex]?.name?.slice(0, 6) || '切換'}</span>
+              </button>
+            )}
 
             <button
               onClick={generatePrayer}
