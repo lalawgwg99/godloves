@@ -543,6 +543,8 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 請務必輸出 JSON 格式，且內容必須具備深刻的高文學與哲學厚度。
 {
   "type": "truth",
+  "verse": "一小段與此真相共鳴的經文或哲學名言",
+  "reference": "來源",
   "surface_question": "...",
   "depth_logic": ["...", "...", "..."],
   "root_cause": "...",
