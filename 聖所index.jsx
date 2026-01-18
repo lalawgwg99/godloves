@@ -250,6 +250,7 @@ const SanctuaryEthereal = () => {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showStory, setShowStory] = useState(false); // 📖 Story Modal State
+  const [showPortal, setShowPortal] = useState(false); // 🌌 Unified Portal State
   const [prayer, setPrayer] = useState('');
   const [isPrayerLoading, setIsPrayerLoading] = useState(false);
   const [showPart2, setShowPart2] = useState(false);
@@ -588,9 +589,22 @@ const SanctuaryEthereal = () => {
     try {
       let promptText;
       if (mode === 'truth') {
-        promptText = `針對這個核心問題：「${result.first_question}」和根本原因：「${result.root_cause}」，請寫一段約 100 字的「哲學反思」，語氣冷靜、銳利，引導人面對真相。`;
+        promptText = `針對這個核心問題：「${result.first_question}」和根本原因：「${result.root_cause}」，請寫一段「深度哲學反思」。
+        要求：
+        1. 角色設定：你是看透世情的智者，語氣要如尼采般犀利，又如齊克果般深邃。
+        2. 內容深度：不要給廉價建議。要討論「本質」、「存在」與「荒謬」。
+        3. 形式：請用「散文詩」的格式。
+        4. 字數：400-600字。讓文字成為一把手術刀。`;
       } else {
-        promptText = `經文:${result.verse}。請寫一段約 150 字的溫柔禱告。`;
+        promptText = `經文:${result.verse}。請寫一段「靈魂深處的禱告」。
+        要求：
+        1. 角色設定：你是守望靈魂的牧者，語氣要極度溫柔、神聖、充滿榮光。
+        2. 文學風格：請模仿 C.S. Lewis 或 奧古斯丁《懺悔錄》的筆觸。
+        3. 結構：
+           - 呼求：在深淵中的呼求。
+           - 轉折：看見微光。
+           - 昇華：靈魂的飛升與安息。
+        4. 字數：400-600字。這必須是一篇可以流傳的禱告文。`;
       }
 
       const prayerBody = {
@@ -772,45 +786,8 @@ const SanctuaryEthereal = () => {
   const renderIdle = () => (
     <div className="flex flex-col items-center justify-center min-h-screen text-center px-6 pt-28 md:pt-0 animate-in fade-in duration-1000">
 
-      {/* 頂部品牌 */}
-      <div className="absolute top-8 left-0 right-0 flex justify-center items-center gap-3 opacity-60">
-        <Sun className="w-4 h-4 text-amber-500/60" />
-        <span className="text-[10px] tracking-[0.4em] uppercase text-white/60 font-light">Sanctuary Ethereal</span>
-      </div>
-
-      {/* 音效控制 */}
-      <button
-        onClick={toggleSound}
-        className="absolute top-8 right-8 p-3 text-stone-600 hover:text-amber-500 transition-colors"
-      >
-        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5 text-amber-500" />}
-      </button>
-      {/* 恩典日記入口 */}
-      {history.length > 0 && (
-        <button
-          onClick={() => setShowHistory(true)}
-          className="absolute top-8 left-8 p-3 text-stone-600 hover:text-amber-500 transition-colors"
-        >
-          <BookOpen className="w-5 h-5" />
-        </button>
-      )}
-
       {/* 背景：神聖之光 (Divine Light) */}
       <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150vw] h-[80vh] bg-gradient-radial from-amber-600/10 via-amber-900/5 to-transparent blur-3xl pointer-events-none animate-[pulse_8s_ease-in-out_infinite]" />
-
-      {/* 頂部品牌 */}
-      <div className="absolute top-8 left-0 right-0 flex justify-center items-center gap-3 opacity-60 z-20">
-        <Sun className="w-4 h-4 text-amber-500/60 animate-[spin_12s_linear_infinite]" />
-        <span className="text-[10px] tracking-[0.4em] uppercase text-white/60 font-light">Sanctuary Ethereal</span>
-      </div>
-
-      {/* 音效控制 */}
-      <button
-        onClick={toggleSound}
-        className="absolute top-8 right-8 p-3 text-stone-600 hover:text-amber-500 transition-colors"
-      >
-        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5 text-amber-500" />}
-      </button>
 
       {/* 核心問題區域 */}
       <div className="relative z-10 flex flex-col items-center">
@@ -895,15 +872,7 @@ const SanctuaryEthereal = () => {
 
   // 2. 傾訴空間：極簡輸入，像是在寫信
   const renderInput = () => (
-    <div className="flex flex-col items-center justify-center min-h-screen px-6 animate-in zoom-in-95 duration-700">
-
-      {/* 返回按鈕 */}
-      <button
-        onClick={() => { setViewState('idle'); setUserStory(''); setCharCount(0); }}
-        className="absolute top-8 left-8 text-stone-600 hover:text-white transition-colors p-2"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+    <div className="flex flex-col items-center justify-center min-h-screen px-6 animate-in zoom-in-95 duration-700 pt-20">
 
       <div className="w-full max-w-xl">
 
@@ -981,20 +950,6 @@ const SanctuaryEthereal = () => {
       {/* 內容層 */}
       <div className="relative z-10 min-h-screen flex flex-col items-center py-16 px-6 overflow-y-auto">
 
-        {/* 頂部導航 */}
-        <div className="w-full max-w-3xl flex justify-between items-center mb-20">
-          <button
-            onClick={() => { setViewState('idle'); setUserStory(''); setCharCount(0); }}
-            className="text-white/50 hover:text-white transition-colors p-2"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          <span className="text-[10px] tracking-[0.4em] uppercase text-white/40 font-light">Sanctuary</span>
-          <button onClick={toggleSound} className="text-white/50 hover:text-amber-500 transition-colors p-2">
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-amber-500" />}
-          </button>
-        </div>
-
         <div className="max-w-2xl w-full space-y-20 pb-32">
 
           {/* 經文：像電影標題 (Grace Mode ONLY) */}
@@ -1048,7 +1003,7 @@ const SanctuaryEthereal = () => {
             </div>
           )}
 
-          {/* 三段式文字：像詩集 (Grace Mode ONLY) */}
+          {/* 三段式文字：像詩集 (Grace Mode) */}
           {mode === 'grace' && (
             <div className="space-y-16">
               <div className="group">
@@ -1078,6 +1033,42 @@ const SanctuaryEthereal = () => {
                   </h3>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
                     <TypewriterText key={result.part3} text={result.part3} speed={25} />
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 真理模式 (Truth Mode) */}
+          {mode === 'truth' && (
+            <div className="space-y-16">
+              <div className="group">
+                <h3 className="text-cyan-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
+                  核心叩問 <div className="h-px w-12 bg-cyan-500/30" />
+                </h3>
+                <h2 className="text-3xl md:text-4xl font-serif text-white/90 leading-relaxed tracking-wider">
+                  <TypewriterText key={result.first_question} text={result.first_question} speed={40} onComplete={() => setShowPart2(true)} />
+                </h2>
+              </div>
+
+              {showPart2 && (
+                <div className="group animate-in fade-in duration-700 py-8 border-l-2 border-cyan-500/30 pl-8">
+                  <h3 className="text-cyan-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
+                    根本原因 <div className="h-px w-12 bg-cyan-500/30" />
+                  </h3>
+                  <p className="text-white/80 font-serif text-lg md:text-xl leading-loose font-light italic">
+                    <TypewriterText key={result.root_cause} text={result.root_cause} speed={30} onComplete={() => setShowPart3(true)} />
+                  </p>
+                </div>
+              )}
+
+              {showPart3 && (
+                <div className="group animate-in fade-in duration-700">
+                  <h3 className="text-cyan-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
+                    蘇格拉底的指引 <div className="h-px w-12 bg-cyan-500/30" />
+                  </h3>
+                  <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
+                    <TypewriterText key={result.socrates_comment} text={result.socrates_comment} speed={25} />
                   </p>
                 </div>
               )}
@@ -1130,6 +1121,7 @@ const SanctuaryEthereal = () => {
               <span className="font-bold">禱告</span>
             </button>
 
+            {/* 下載/收藏 (右側) */}
             <button
               onClick={handleDownload}
               className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-stone-500 hover:text-white transition-all"
@@ -1138,16 +1130,6 @@ const SanctuaryEthereal = () => {
                 <Download className="w-5 h-5" />
               </div>
               收藏
-            </button>
-
-            <button
-              onClick={handleShare}
-              className="flex flex-col items-center gap-3 text-[10px] tracking-[0.2em] uppercase text-stone-500 hover:text-white transition-all"
-            >
-              <div className="p-5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
-                <Share2 className="w-5 h-5" />
-              </div>
-              分享
             </button>
           </div>
 
@@ -1229,20 +1211,124 @@ const SanctuaryEthereal = () => {
         </div>
       ))}
 
-      {/* 🕯️ 聖所燭光 (在線人數) */}
-      <div className="absolute top-6 right-6 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/5 animate-in fade-in duration-1000">
-        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.6)]" />
-        <span className="text-[10px] text-amber-500/80 font-mono tracking-widest">{onlineCount}</span>
+      {/* --- 🌌 SANCTUARY PORTAL --- */}
+      {showPortal && (
+        <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-[40px] animate-in fade-in duration-500 overflow-y-auto custom-scrollbar">
+          <div className="min-h-screen w-full max-w-lg ml-auto bg-[#0a0a0b]/90 border-l border-white/5 p-8 md:p-12 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
+
+            <div className="flex justify-between items-center mb-16">
+              <h2 className="text-xl font-serif text-amber-100/90 tracking-[0.3em]">聖所門戶</h2>
+              <button onClick={() => setShowPortal(false)} className="p-2 text-stone-500 hover:text-white transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-12">
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 text-stone-500">
+                  <BookOpen className="w-4 h-4" />
+                  <span className="text-[10px] uppercase tracking-[0.3em]">生命之書</span>
+                </div>
+                <div className="grid gap-3">
+                  {history.length > 0 ? (
+                    history.slice(0, 3).map((item, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setShowHistory(true); setShowPortal(false); }}
+                        className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-amber-500/30 text-left transition-all group"
+                      >
+                        <div className="text-amber-500/60 text-[8px] mb-1 font-mono uppercase">{item.mode || 'grace'}</div>
+                        <p className="text-xs text-stone-300 line-clamp-1 italic">「{item.verse || item.first_question}」</p>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-10 rounded-3xl border border-dashed border-white/5 text-center text-stone-700 text-xs italic">尚未留下文字。</div>
+                  )}
+                  {history.length > 0 && (
+                    <button onClick={() => { setShowHistory(true); setShowPortal(false); }} className="text-center py-2 text-[10px] text-amber-500/40 hover:text-amber-500 transition-colors tracking-widest uppercase">View Full Scroll</button>
+                  )}
+                </div>
+              </section>
+
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 text-stone-500">
+                  <Users className="w-4 h-4" />
+                  <span className="text-[10px] uppercase tracking-[0.3em]">萬民連結</span>
+                </div>
+                <div className="p-6 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-between">
+                  <div>
+                    <div className="text-amber-500 text-lg font-mono tracking-tighter">{onlineCount}</div>
+                    <div className="text-[9px] text-stone-600 uppercase tracking-widest">守望魂靈</div>
+                  </div>
+                  <div className="w-px h-8 bg-white/5" />
+                  <div className="text-right">
+                    <div className="text-white/60 text-[10px] tracking-widest italic">靈性共振中</div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 text-stone-500">
+                  <Settings className="w-4 h-4" />
+                  <span className="text-[10px] uppercase tracking-[0.3em]">聖域設置</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5">
+                    <span className="text-xs text-stone-400">環境音效</span>
+                    <button onClick={toggleSound} className={`w-12 h-6 rounded-full transition-all relative ${!isMuted ? 'bg-amber-600' : 'bg-stone-800'}`}>
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${!isMuted ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+                  <button onClick={() => { setShowStory(true); setShowPortal(false); }} className="w-full flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                    <span className="text-xs text-stone-400 group-hover:text-amber-200">聖所源起</span>
+                    <ChevronRight className="w-4 h-4 text-stone-600" />
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- 🕊️ REFINED TOP BAR --- */}
+      <div className="fixed top-0 left-0 right-0 z-[150] flex items-center justify-between p-6 md:p-10 pointer-events-none">
+
+        {/* Dynamic Left: Logo or Exit */}
+        <div className="pointer-events-auto">
+          {viewState === 'idle' ? (
+            <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
+              <Sun className="w-4 h-4 text-amber-500 animate-[pulse_4s_infinite]" />
+              <span className="text-[10px] tracking-[0.5em] uppercase text-white font-light">Sanctuary</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setViewState('idle'); setUserStory(''); setCharCount(0); stopAudio(); }}
+              className="group flex items-center gap-2 text-stone-500 hover:text-white transition-all"
+            >
+              <div className="p-2 rounded-full border border-white/5 bg-white/5 backdrop-blur-md group-hover:border-white/20">
+                <X className="w-4 h-4" />
+              </div>
+              <span className="text-[9px] uppercase tracking-[0.3em] opacity-0 group-hover:opacity-60 -translate-x-2 group-hover:translate-x-0 transition-all">離開聖所</span>
+            </button>
+          )}
+        </div>
+
+        {/* Right: Unified Portal Trigger */}
+        <div className="pointer-events-auto">
+          <button
+            onClick={() => setShowPortal(true)}
+            className="h-10 px-4 rounded-full bg-black/20 border border-white/5 backdrop-blur-md flex items-center gap-3 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all group shadow-lg"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+              <span className="text-[10px] text-amber-500 font-mono tracking-tighter">{onlineCount}</span>
+            </div>
+            <div className="w-px h-3 bg-white/10" />
+            <Menu className="w-4 h-4 text-stone-500 group-hover:text-amber-500 transition-colors" />
+          </button>
+        </div>
       </div>
 
-      {/* 📖 關於故事 (Help Button) */}
-      <button
-        onClick={() => setShowStory(true)}
-        className="absolute top-6 right-20 z-50 p-2 text-stone-600 hover:text-amber-500 transition-colors"
-        title="關於聖所"
-      >
-        <div className="w-5 h-5 flex items-center justify-center border border-current rounded-full text-[10px] font-serif">?</div>
-      </button>
 
       {/* 📖 Story Modal */}
       {showStory && (
