@@ -57,18 +57,71 @@ const GhostButton = ({ onClick, icon: Icon, label, className = "" }) => (
 /**
  * ✨ MainAction: 主要行動 (Glow / Solid)
  */
-const MainAction = ({ onClick, children, className = "", mode = 'grace' }) => {
-    const bgClass = mode === 'truth'
-        ? "bg-cyan-900/20 hover:bg-cyan-800/30 border-cyan-500/30 text-cyan-100"
-        : "bg-amber-900/20 hover:bg-amber-800/30 border-amber-500/30 text-amber-100";
+/**
+ * ✨ RitualHoldButton: 儀式蓄力按鈕 (Long Press / Charge)
+ * Replaces MainAction with a hold-to-confirm mechanism.
+ */
+const RitualHoldButton = ({ onComplete, children, className = "", mode = 'grace' }) => {
+    const [progress, setProgress] = React.useState(0);
+    const [isHolding, setIsHolding] = React.useState(false);
+    const intervalRef = React.useRef(null);
+    const DURATION = 1500; // 1.5 seconds
+
+    const startCharge = () => {
+        setIsHolding(true);
+        let startTime = Date.now();
+
+        intervalRef.current = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const p = Math.min((elapsed / DURATION) * 100, 100);
+            setProgress(p);
+
+            if (p >= 100) {
+                clearInterval(intervalRef.current);
+                setIsHolding(false);
+                if (onComplete) onComplete();
+            }
+        }, 16);
+    };
+
+    const cancelCharge = () => {
+        setIsHolding(false);
+        setProgress(0);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+
+    const colorClass = mode === 'truth' ? "cyan" : "amber";
+    // Tailwind dynamic colors need full strings to be safe, but here we use style or specific mapping
+    const strokeColor = mode === 'truth' ? "#06b6d4" : "#f59e0b";
 
     return (
-        <button
-            onClick={onClick}
-            className={`px-8 py-3 rounded-full border backdrop-blur-md transition-all duration-500 ${bgClass} ${className}`}
-        >
-            {children}
-        </button>
+        <div className="relative group touch-none select-none -translate-x-1/2 left-1/2 w-max">
+            {/* 修正：居中定位 wrapper */}
+
+            {/* 蓄力光環 (SVG Ring) */}
+            <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none scale-150 opacity-0 group-active:opacity-100 transition-opacity duration-300" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="48" fill="none" stroke={strokeColor} strokeWidth="2" strokeDasharray="300" strokeDashoffset={300 - (progress * 3)} className="transition-all duration-75 ease-linear" strokeLinecap="round" />
+            </svg>
+
+            <button
+                onMouseDown={startCharge}
+                onMouseUp={cancelCharge}
+                onMouseLeave={cancelCharge}
+                onTouchStart={startCharge}
+                onTouchEnd={cancelCharge}
+                className={`
+                    relative px-10 py-4 rounded-full border border-white/10 backdrop-blur-md 
+                    transition-all duration-300 active:scale-95
+                    ${mode === 'truth' ? 'bg-cyan-900/20 text-cyan-50' : 'bg-amber-900/20 text-amber-50'}
+                    ${isHolding ? 'animate-[pulse_0.2s_ease-in-out_infinite]' : ''}
+                    ${className}
+                `}
+            >
+                <span className={`tracking-[0.2em] font-serif ${isHolding ? 'opacity-50 blur-[1px]' : 'opacity-100'}`}>
+                    {isHolding ? 'HOLDING...' : children}
+                </span>
+            </button>
+        </div>
     );
 };
 
@@ -77,4 +130,5 @@ window.TheWord = TheWord;
 window.TheWhisper = TheWhisper;
 window.TheLogic = TheLogic;
 window.GhostButton = GhostButton;
-window.MainAction = MainAction;
+window.MainAction = RitualHoldButton; // Expose as MainAction to keep compatibility but upgrade logic
+window.RitualHoldButton = RitualHoldButton;

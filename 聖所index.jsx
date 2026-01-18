@@ -1092,9 +1092,9 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         {/* 交付按鈕 - 光暈效果 */}
         {/* 交付按鈕 - 光暈效果 */}
         <div className="mt-20 flex justify-center">
-          <MainAction onClick={handleListen} mode={mode} className="group flex items-center gap-4 text-lg tracking-[0.25em]">
+          <MainAction onComplete={handleListen} mode={mode} className="group flex items-center gap-4 text-lg tracking-[0.25em]">
             <Wind className="w-5 h-5 opacity-70" />
-            {mode === 'truth' ? '尋求真理' : '交付與聆聽'}
+            {mode === 'truth' ? '長按尋求真理' : '長按交付 (HOLD)'}
           </MainAction>
         </div>
 
