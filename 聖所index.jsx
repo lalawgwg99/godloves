@@ -688,18 +688,6 @@ const SanctuaryEthereal = () => {
   );
 
   // 3. 連結中：只有呼吸的光
-  const renderProcessing = () => (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      {/* 呼吸的光柱 */}
-      <div className="relative">
-        <div className="w-px h-40 bg-gradient-to-b from-transparent via-amber-500/60 to-transparent animate-pulse" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-amber-500/10 rounded-full blur-3xl animate-ping" />
-      </div>
-      <p className="mt-12 font-serif text-stone-500 tracking-[0.4em] text-xs animate-pulse">
-        正在為你尋求應許⋯
-      </p>
-    </div>
-  );
 
   // 4. 應許顯現：全螢幕沉浸式 (Cinematic Result)
   const renderResult = () => (
@@ -906,13 +894,22 @@ const SanctuaryEthereal = () => {
   // 🎬 MAIN RENDER
   // ================================================================
   return (
-    { viewState === 'input' && renderInput()}
-{ viewState === 'processing' && renderProcessing() }
-{ viewState === 'result' && result && renderResult() }
+    <div className="relative min-h-screen bg-[#050506] text-stone-200 overflow-hidden font-sans selection:bg-amber-900/30 selection:text-amber-100">
+      {/* 粒子背景 (Pass viewState) */}
+      <ParticleField viewState={viewState} />
 
-{/* 恩典日記浮層 */ }
-{ showHistory && renderHistory() }
-    </div >
+      {/* 視圖切換 */}
+      <div className="relative z-10">
+        {viewState === 'idle' && renderIdle()}
+        {viewState === 'input' && renderInput()}
+        {viewState === 'processing' && renderProcessing()}
+        {viewState === 'result' && result && renderResult()}
+      </div>
+
+      {/* 浮層 */}
+      {showHistory && renderHistory()}
+
+    </div>
   );
 };
 
