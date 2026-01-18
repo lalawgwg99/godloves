@@ -447,11 +447,18 @@ const SanctuaryEthereal = () => {
     if (!window.speechSynthesis) return;
 
     setIsPlaying(true);
-    const ttsText = `${result.part1} ${result.part2}`;
+    let ttsText;
+
+    if (mode === 'truth') {
+      ttsText = `${result.first_question}。${result.socrates_comment}`;
+    } else {
+      ttsText = `${result.part1} ${result.part2}`;
+    }
+
     const utterance = new SpeechSynthesisUtterance(ttsText);
     utterance.lang = 'zh-TW';
-    utterance.rate = 0.7;
-    utterance.pitch = 0.85;
+    utterance.rate = mode === 'truth' ? 0.9 : 0.7; // Truth is faster/sharper
+    utterance.pitch = mode === 'truth' ? 0.5 : 0.85; // Truth is deeper
 
     const voices = window.speechSynthesis.getVoices();
     const bestVoice = voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google')) ||
@@ -469,13 +476,20 @@ const SanctuaryEthereal = () => {
     if (!result) return;
     setIsPrayerLoading(true);
     try {
+      let promptText;
+      if (mode === 'truth') {
+        promptText = `針對這個核心問題：「${result.first_question}」和根本原因：「${result.root_cause}」，請寫一段約 100 字的「哲學反思」，語氣冷靜、銳利，引導人面對真相。`;
+      } else {
+        promptText = `經文:${result.verse}。請寫一段約 150 字的溫柔禱告。`;
+      }
+
       const prayerBody = {
-        contents: [{ parts: [{ text: `經文:${result.verse}。請寫一段約 150 字的溫柔禱告。` }] }],
+        contents: [{ parts: [{ text: promptText }] }],
       };
       const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent`, prayerBody);
       setPrayer(data.candidates[0].content.parts[0].text);
     } catch (e) {
-      setPrayer("親愛的主,感謝祢此刻的同在。願祢的話語成為我腳前的燈,路上的光。奉主耶穌的名,阿們。");
+      setPrayer(mode === 'truth' ? "真相往往刺眼，但唯有直視它，你才能獲得真正的自由。" : "親愛的主,感謝祢此刻的同在。願祢的話語成為我腳前的燈,路上的光。奉主耶穌的名,阿們。");
     } finally {
       setIsPrayerLoading(false);
     }
@@ -834,8 +848,8 @@ const SanctuaryEthereal = () => {
 
         <div className="max-w-2xl w-full space-y-20 pb-32">
 
-          {/* 經文：像電影標題 (Grace Mode) */}
-          {result.verse && (
+          {/* 經文：像電影標題 (Grace Mode ONLY) */}
+          {mode === 'grace' && result.verse && (
             <div className="text-center space-y-8 animate-in slide-in-from-bottom-10 fade-in duration-1000 delay-300">
               <div className="inline-block px-5 py-2 border border-white/20 rounded-full text-[10px] tracking-[0.3em] text-white/60">
                 {result.reference}
@@ -885,41 +899,41 @@ const SanctuaryEthereal = () => {
             </div>
           )}
 
-          {/* 三段式文字：像詩集 */}
-          <div className="space-y-16">
-            <div className="group">
-              <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                光中的應許 <div className="h-px w-12 bg-amber-500/30" />
-              </h3>
-              <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
-                <TypewriterText key={result.part1} text={result.part1} speed={25} onComplete={() => setShowPart2(true)} />
-              </p>
-            </div>
-
-            {showPart2 && (
-              <div className="group animate-in fade-in duration-700">
+          {/* 三段式文字：像詩集 (Grace Mode ONLY) */}
+          {mode === 'grace' && (
+            <div className="space-y-16">
+              <div className="group">
                 <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                  愛的回應 <div className="h-px w-12 bg-amber-500/30" />
+                  光中的應許 <div className="h-px w-12 bg-amber-500/30" />
                 </h3>
-                <p className="text-white/70 font-serif text-lg md:text-xl leading-loose font-light italic pl-6 border-l border-amber-500/30">
-                  <TypewriterText key={result.part2} text={result.part2} speed={35} onComplete={() => setShowPart3(true)} />
+                <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
+                  <TypewriterText key={result.part1} text={result.part1} speed={25} onComplete={() => setShowPart2(true)} />
                 </p>
               </div>
-            )}
 
-            {showPart3 && (
-              <div className="group animate-in fade-in duration-700">
-                <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                  與我同行 <div className="h-px w-12 bg-amber-500/30" />
-                </h3>
-                <div className="bg-white/[0.03] backdrop-blur-sm p-8 rounded-2xl border border-white/10">
-                  <p className="text-white/80 font-serif text-lg leading-loose font-light">
+              {showPart2 && (
+                <div className="group animate-in fade-in duration-700">
+                  <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
+                    靈魂的指引 <div className="h-px w-12 bg-amber-500/30" />
+                  </h3>
+                  <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
+                    <TypewriterText key={result.part2} text={result.part2} speed={25} onComplete={() => setShowPart3(true)} />
+                  </p>
+                </div>
+              )}
+
+              {showPart3 && (
+                <div className="group animate-in fade-in duration-700">
+                  <h3 className="text-amber-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
+                    最終的祝福 <div className="h-px w-12 bg-amber-500/30" />
+                  </h3>
+                  <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
                     <TypewriterText key={result.part3} text={result.part3} speed={25} />
                   </p>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* 禱告區 */}
           {prayer && (
