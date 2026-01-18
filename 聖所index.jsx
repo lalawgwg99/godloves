@@ -32,7 +32,8 @@ const {
   Users,
   Hourglass,
   Sprout,
-  Coffee // Donation
+  Coffee, // Donation
+  Mic // Voice Switcher
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
@@ -317,7 +318,7 @@ const SanctuaryEthereal = () => {
 
       {/* 情境式獨白文字 */}
       <div className="mt-24 h-8 flex items-center justify-center">
-        <p className="font-serif text-stone-400 tracking-[0.5em] text-sm animate-[fade-in_1s_ease-in-out] key={statusText}">
+        <p key={statusText} className="font-serif text-stone-400 tracking-[0.5em] text-sm animate-in fade-in duration-1000 slide-in-from-bottom-2">
           {statusText}
         </p>
       </div>
