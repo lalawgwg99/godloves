@@ -145,6 +145,53 @@ const useAmbientSound = () => {
   return { isMuted, toggleSound, initAudio };
 };
 
+// --- Custom Hook: 靈魂視差 (Parallax Soul) ---
+// Returns style objects for background (deep) and foreground (near) layers
+const useParallax = () => {
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      // Calculate offset from center (-1 to 1)
+      const x = (e.clientX - window.innerWidth / 2) / window.innerWidth;
+      const y = (e.clientY - window.innerHeight / 2) / window.innerHeight;
+      setOffset({ x, y });
+    };
+
+    // Optional: Device Orientation for Mobile
+    const handleOrientation = (e) => {
+      const x = (e.gamma || 0) / 45; // Tilt left/right
+      const y = (e.beta || 0) / 45;  // Tilt up/down
+      setOffset({ x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y)) });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (window.DeviceOrientationEvent) {
+        window.removeEventListener('deviceorientation', handleOrientation);
+      }
+    };
+  }, []);
+
+  // Intensity multipliers
+  const bgStyle = {
+    transform: `translate(${-offset.x * 20}px, ${-offset.y * 20}px) scale(1.1)`, // Moves opposite to mouse (feels far)
+    transition: 'transform 0.1s ease-out'
+  };
+
+  const fgStyle = {
+    transform: `translate(${offset.x * 10}px, ${offset.y * 10}px)`, // Moves with mouse (feels near)
+    transition: 'transform 0.1s ease-out'
+  };
+
+  return { bgStyle, fgStyle };
+};
+
 // --- Component: 聖言顯影 (Vapor Reveal) ---
 const EtherealReveal = ({ text, speed = 40, className, onComplete }) => {
   const [chars, setChars] = useState([]);
@@ -330,6 +377,7 @@ const SanctuaryEthereal = () => {
   const inputRef = useRef(null);
   const audioSourceRef = useRef(null);
   const { isMuted, toggleSound, initAudio } = useAmbientSound();
+  const { bgStyle, fgStyle } = useParallax(); // 👁️ Initialize Parallax
 
   // Voice State
   const [availableVoices, setAvailableVoices] = useState([]);
@@ -1110,14 +1158,15 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
   // 4. 應許顯現：全螢幕沉浸式 (Cinematic Result)
   const renderResult = () => (
-    <div className="relative min-h-screen w-full overflow-hidden bg-black animate-in fade-in duration-1000">
+    <div className="relative min-h-screen w-full overflow-hidden bg-black animate-in fade-in duration-1000 perspective-1000">
 
-      {/* 背景層：圖片即背景 (Ken Burns Effect) */}
-      <div className="absolute inset-0 z-0">
+      {/* 背景層：圖片即背景 (Ken Burns Effect + Parallax) */}
+      <div className="absolute inset-0 z-0" style={bgStyle}>
         {imageUrl && (
           <img
             src={imageUrl}
-            className={`w-full h-full object-cover transition-all duration-[5s] ease-out ${imageLoaded ? 'opacity-50 scale-110' : 'opacity-0 scale-100'}`}
+            className={`w-full h-full object-cover transition-all duration-[5s] ease-out ${imageLoaded ? 'opacity-50' : 'opacity-0'}`}
+            /* Note: Scale is now handled by bgStyle to prevent conflict */
             onLoad={() => setImageLoaded(true)}
             alt="Atmosphere"
           />
@@ -1128,7 +1177,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
       </div>
 
       {/* 內容層 */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center py-16 px-6 overflow-y-auto">
+      <div className="relative z-10 min-h-screen flex flex-col items-center py-16 px-6 overflow-y-auto" style={fgStyle}>
 
         <div className="max-w-2xl w-full space-y-20 pb-32">
 
