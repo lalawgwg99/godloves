@@ -65,7 +65,7 @@ const RitualHoldButton = ({ onComplete, children, className = "", mode = 'grace'
     const [progress, setProgress] = React.useState(0);
     const [isHolding, setIsHolding] = React.useState(false);
     const intervalRef = React.useRef(null);
-    const DURATION = 1500; // 1.5 seconds
+    const DURATION = 2.500; // 2.5 seconds
 
     const startCharge = () => {
         setIsHolding(true);

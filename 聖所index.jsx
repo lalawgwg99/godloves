@@ -47,7 +47,7 @@ const SUPABASE_URL = "https://twtfdaglknppkdgihjfe.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_RQL4WxJyav143AUD0jvyFw_6RX4l-fj";
 
 // 🤖 AI Model Configuration (2026 Standards)
-const MODELS_TEXT = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]; // Reverted to stable 2.0/1.5 for reliability
+const MODELS_TEXT = ["gemini-3-flash", "gemini-2.0-flash", "gemini-1.5-pro"]; // Reverted to stable 2.0/1.5 for reliability
 const MODELS_IMAGE = ["imagen-4.0-generate-001", "imagen-3.0-generate-001"];
 let supabase = null;
 if (window.supabase) {
@@ -665,7 +665,7 @@ ${diversityHint}
 特別指令：本回合請務必從「${randomSource}」中選取經文。請避開那些過於常見的"金句"，挖掘那些冷門但深刻的章節。
 
 內容要求：
-1. 長度：part1(300字以上), part2(250字以上), part3(200字以上)。總長度需展現「榮耀感」。
+1. 長度：part1(200-250字), part2(200-250字), part3(150-200字)。總長度需展現「榮耀感」。
 2. 語氣：溫柔、莊嚴、且富有洞察力。
 3. 結構：
    - verse: 選一段能刺透人心的經文。
@@ -691,9 +691,9 @@ ${diversityHint}
 字數與質量要求：
 1. surface_question (150字): 翻譯並提純使用者的困惑，撕開那些自我保護的說辭。
 2. depth_logic (陣列 3 條): 每一條質疑必須具備摧毀性。字數需足夠支撐論點（每條50字以上）。
-3. root_cause (200字以上): 這裡必須是一場「靈魂手術」。不留情面地指出使用者在逃避的終極真相（例如：虛榮、恐懼死亡、對權力的病態渴求、或對自由的畏縮）。
+3. root_cause (150~200字): 這裡必須是一場「靈魂手術」。不留情面地指出使用者在逃避的終極真相（例如：虛榮、恐懼死亡、對權力的病態渴求、或對自由的畏縮）。
 4. first_question (100字內): 一個讓使用者無法迴避、必須用餘生去回答的「第一哲學問題」。
-5. socrates_comment (80字以上): 一句如尼采般狂放、又如基克果般憂鬱的終極點評。
+5. socrates_comment (100-200字): 一句如尼采般狂放、又如基克果般憂鬱的終極點評。
 
 視覺引導:
 image_prompt: Abstract minimalistic geometric concept art, sharp lines, high contrast, black and obsidian, gold leaf accents, philosophical void, cinematic lighting, 8k.
@@ -808,7 +808,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         2. 內容深度：不要給廉價建議。要討論「本質」、「存在」與「荒謬」。
         3. 形式：請用「散文詩」的格式。
         3. 形式：請用「散文詩」的格式。
-        4. 字數：200-350字。精簡有力，讓文字成為一把手術刀。`;
+        4. 字數：150-250字。精簡有力，讓文字成為一把手術刀。`;
       } else {
         promptText = `經文:${result.verse}。請寫一段「靈魂深處的禱告」。
         要求：
@@ -820,7 +820,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
            - 昇華：靈魂的飛升與安息。
            - 轉折：看見微光。
            - 昇華：靈魂的飛升與安息。
-        4. 字數：300-400字。這必須是一篇精煉且可以流傳的禱告文。`;
+        4. 字數：150-250字。這必須是一篇精煉且可以流傳的禱告文。`;
       }
 
       const prayerBody = {
@@ -1171,9 +1171,16 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         {/* 交付按鈕 - 光暈效果 */}
         {/* 交付按鈕 - 光暈效果 */}
         <div className="mt-20 flex justify-center">
-          <MainAction onComplete={handleListen} mode={mode} className="group flex items-center gap-4 text-lg tracking-[0.25em]">
-            <Wind className="w-5 h-5 opacity-70" />
-            {mode === 'truth' ? '凝視深淵' : '交付靈魂'}
+          <MainAction onComplete={handleListen} mode={mode} className="group flex items-center justify-center text-lg tracking-[0.25em]">
+            <span className="flex flex-col items-center gap-0.5">
+              <span className="flex items-center gap-3">
+                <Wind className="w-5 h-5 opacity-70" />
+                <span>{mode === 'truth' ? '凝視深淵' : '交付靈魂'}</span>
+              </span>
+              <span className="text-[10px] opacity-40 tracking-widest font-sans uppercase">
+                {mode === 'truth' ? '長按凝視' : '長按注入'}
+              </span>
+            </span>
           </MainAction>
         </div>
 
