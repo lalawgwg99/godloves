@@ -752,8 +752,8 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         const lineHeight = 54;
 
         if (mode === 'truth') {
-          // Hammer of Truth Rendering
-          ctx.fillStyle = '#f59e0b';
+          // Hammer of Truth Rendering - Use Cyan Accent
+          ctx.fillStyle = '#06b6d4';
           ctx.font = 'bold 36px serif';
           ctx.fillText('HAMMER OF TRUTH', canvas.width / 2, 180);
 
@@ -775,7 +775,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             startY += 40;
           });
 
-          ctx.fillStyle = '#f59e0b';
+          ctx.fillStyle = '#06b6d4';
           ctx.font = 'italic 30px serif';
           ctx.fillText(`"${result.socrates_comment}"`, canvas.width / 2, startY + 80);
 
@@ -1058,42 +1058,103 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             </div>
           )}
 
-          {/* 真理卡片 (Truth Mode) */}
-          {result.first_question && (
-            <div className="relative w-full max-w-md mx-auto aspect-[3/4] bg-[#0c0a09] border border-amber-900/30 p-8 flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95 duration-1000 delay-300 group">
-              {/* 裝飾線 */}
-              <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-amber-500/50" />
-              <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-amber-500/50" />
-              <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-amber-500/50" />
-              <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-amber-500/50" />
+          {/* Obsidian Truth UI (Truth Mode ONLY) */}
+          {mode === 'truth' && (
+            <div className="relative w-full max-w-2xl mx-auto py-12 px-4 selection:bg-cyan-900/40">
+              {/* Spine of Truth - Vertical Glow Line */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-cyan-500/40 to-transparent -translate-x-1/2 hidden md:block" />
 
-              {/* 標題 */}
-              <h3 className="text-amber-500/80 font-serif tracking-[0.5em] text-xs mb-8 uppercase border-b border-amber-900/30 pb-4 w-1/2">
-                Hammer of Truth
-              </h3>
+              <div className="space-y-32 relative">
+                {/* 1. The Refined Insight (Verse Replacement in Truth) */}
+                <div className="text-center space-y-4 animate-in fade-in slide-in-from-top-10 duration-1000">
+                  <div className="font-mono text-[10px] tracking-[0.4em] text-cyan-500/60 uppercase">
+                    Refinement {result.reference && ` // ${result.reference}`}
+                  </div>
+                  <h2 className="font-serif text-3xl md:text-5xl font-bold text-white leading-tight glitch-text">
+                    「{result.verse}」
+                  </h2>
+                </div>
 
-              {/* 內容 */}
-              <div className="flex-1 flex flex-col justify-center space-y-6">
-                <p className="text-stone-500 text-xs tracking-widest uppercase">Root Cause</p>
-                <p className="text-white/80 font-serif text-lg">{result.root_cause}</p>
+                {/* 2. Central Obsidian Block (Surface & Logic) */}
+                <div className="grid md:grid-cols-2 gap-12 items-start">
+                  <div className="space-y-8 animate-in fade-in slide-in-from-left-10 duration-1000 delay-300">
+                    <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
+                      Surface Question
+                    </div>
+                    <p className="text-white/70 font-serif text-xl leading-relaxed italic">
+                      <TypewriterText key={`truth-sf-${result.surface_question}`} text={result.surface_question} speed={30} onComplete={() => setShowPart2(true)} />
+                    </p>
+                  </div>
 
-                <div className="w-8 h-px bg-amber-900/50 mx-auto my-6" />
+                  {showPart2 && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-10 duration-1000">
+                      <div className="inline-block px-3 py-1 bg-white/5 border border-white/10 rounded text-[9px] font-mono tracking-widest text-stone-500 uppercase">
+                        Logical Analysis
+                      </div>
+                      <div className="space-y-4">
+                        {result.depth_logic?.map((logic, idx) => (
+                          <div key={idx} className="flex gap-4 items-start group">
+                            <span className="font-mono text-cyan-600 text-[10px] mt-2">0{idx + 1}</span>
+                            <p className="text-stone-400 font-serif text-sm leading-relaxed group-hover:text-white/80 transition-colors">
+                              {logic}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-                <p className="text-amber-500 text-xs tracking-widest uppercase">The First Question</p>
-                <h2 className="text-2xl md:text-3xl font-serif text-white font-bold leading-relaxed">
-                  {result.first_question}
-                </h2>
+                {/* 3. The Root Surgery (Bottom Block) */}
+                {showPart2 && (
+                  <div className="relative pt-16 animate-in fade-in zoom-in-95 duration-1000 delay-500">
+                    {/* Horizontal Divider with Hammer Icon */}
+                    <div className="flex items-center justify-center gap-6 mb-16">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent to-cyan-500/30" />
+                      <div className="p-4 rounded-full border border-cyan-500/30 bg-black shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                        <Hammer className="w-5 h-5 text-cyan-500" />
+                      </div>
+                      <div className="h-px flex-1 bg-gradient-to-l from-transparent to-cyan-500/30" />
+                    </div>
+
+                    <div className="bg-[#0a0a0b] border border-white/5 p-10 md:p-16 rounded-[2rem] shadow-2xl relative overflow-hidden group">
+                      {/* Subliminal Background Text */}
+                      <div className="absolute top-0 right-0 p-4 font-mono text-[40px] text-white/[0.02] select-none pointer-events-none tracking-tighter uppercase font-bold">
+                        EXISTENTIAL
+                      </div>
+
+                      <div className="relative space-y-12">
+                        <div className="space-y-4">
+                          <label className="font-mono text-[9px] tracking-[0.5em] text-cyan-400/80 uppercase">Root Cause</label>
+                          <p className="text-white/90 font-serif text-xl md:text-2xl leading-relaxed">
+                            <TypewriterText key={`truth-rc-${result.root_cause}`} text={result.root_cause} speed={25} onComplete={() => setShowPart3(true)} />
+                          </p>
+                        </div>
+
+                        {showPart3 && (
+                          <div className="space-y-6 pt-12 border-t border-white/5 animate-in slide-in-from-bottom-5 duration-700">
+                            <label className="font-mono text-[9px] tracking-[0.5em] text-cyan-400 uppercase">The First Question</label>
+                            <h2 className="text-3xl md:text-5xl font-serif text-white font-bold leading-tight tracking-tight">
+                              {result.first_question}
+                            </h2>
+                            <div className="pt-8">
+                              <p className="text-stone-500 font-serif italic text-base border-l-2 border-cyan-500/30 pl-6 leading-relaxed">
+                                "{result.socrates_comment}"
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Corner Accents */}
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 blur-3xl rounded-full" />
+                      <div className="absolute bottom-4 right-8 font-mono text-[8px] text-stone-800 tracking-widest uppercase opacity-40">
+                        System.Insight.Finalized()
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* 底部點評 */}
-              <div className="mt-8 pt-6 border-t border-amber-900/30 w-full">
-                <p className="text-stone-400 font-serif italic text-sm">
-                  "{result.socrates_comment}"
-                </p>
-              </div>
-
-              {/* 懸停發光 */}
-              <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
             </div>
           )}
 
@@ -1133,41 +1194,6 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             </div>
           )}
 
-          {/* 真理模式 (Truth Mode) */}
-          {mode === 'truth' && (
-            <div className="space-y-16">
-              <div className="group">
-                <h3 className="text-cyan-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                  核心叩問 <div className="h-px w-12 bg-cyan-500/30" />
-                </h3>
-                <h2 className="text-3xl md:text-4xl font-serif text-white/90 leading-relaxed tracking-wider">
-                  <TypewriterText key={result.first_question} text={result.first_question} speed={40} onComplete={() => setShowPart2(true)} />
-                </h2>
-              </div>
-
-              {showPart2 && (
-                <div className="group animate-in fade-in duration-700 py-8 border-l-2 border-cyan-500/30 pl-8">
-                  <h3 className="text-cyan-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                    根本原因 <div className="h-px w-12 bg-cyan-500/30" />
-                  </h3>
-                  <p className="text-white/80 font-serif text-lg md:text-xl leading-loose font-light italic">
-                    <TypewriterText key={result.root_cause} text={result.root_cause} speed={30} onComplete={() => setShowPart3(true)} />
-                  </p>
-                </div>
-              )}
-
-              {showPart3 && (
-                <div className="group animate-in fade-in duration-700">
-                  <h3 className="text-cyan-500/70 font-serif text-xs tracking-[0.3em] mb-5 flex items-center gap-4 opacity-80">
-                    蘇格拉底的指引 <div className="h-px w-12 bg-cyan-500/30" />
-                  </h3>
-                  <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
-                    <TypewriterText key={result.socrates_comment} text={result.socrates_comment} speed={25} />
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* 禱告區 */}
           {prayer && (

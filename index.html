@@ -99,6 +99,59 @@
         opacity: 0;
       }
     }
+
+    /* 🛡️ Obsidian Truth Glitch Effect */
+    @keyframes glitch {
+      0% {
+        transform: translate(0) scale(1);
+        text-shadow: -2px 0 #06b6d4, 2px 0 #ec4899;
+      }
+
+      20% {
+        transform: translate(-1px, 1px) scale(1);
+      }
+
+      40% {
+        transform: translate(-1px, -1px) scale(0.999);
+        text-shadow: 2px 0 #06b6d4, -2px 0 #ec4899;
+      }
+
+      60% {
+        transform: translate(1px, 1px) scale(1);
+      }
+
+      80% {
+        transform: translate(1px, -1px) scale(1.001);
+        text-shadow: -1px 0 #06b6d4, 1px 0 #ec4899;
+      }
+
+      100% {
+        transform: translate(0) scale(1);
+        text-shadow: none;
+      }
+    }
+
+    .glitch-text {
+      animation: glitch 3s infinite;
+    }
+
+    /* Premium Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.2);
+      border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(245, 158, 11, 0.4);
+    }
   </style>
 </head>
 
