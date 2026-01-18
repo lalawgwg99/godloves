@@ -489,9 +489,22 @@ const SanctuaryEthereal = () => {
       const safetyGuardrail = "若使用者的故事涉及極端情緒,請以純粹的陪伴與安慰為主。";
       const diversityHint = "請每次選擇不同的經文，絕不重複之前的選擇。";
       // 注入隨機靈魂擾動，確保每次生成都具備獨特視角
-      const atmospheres = ["深淵中的迴聲", "黎明前的微光", "荒原上的星火", "廢墟中的詠嘆", "極北的孤寂"];
+      const atmospheres = ["深淵中的迴聲", "黎明前的微光", "荒原上的星火", "廢墟中的詠嘆", "極北的孤寂", "暴風中的寧靜"];
       const randomAtmosphere = atmospheres[Math.floor(Math.random() * atmospheres.length)];
-      const wisdomPrompt = `[當前氛圍:${randomAtmosphere}] [使用者狀態:${selectedMood}] ${userStory ? `[心事:${userStory}]` : ''} [隨機偏移量:${Math.random().toString(36).substring(7)}] `;
+
+      // 📖 神聖圖書館 (Divine Library) - 強制隨機化經文來源
+      const scriptureSources = [
+        "舊約智慧書 (詩篇/箴言/傳道書/雅歌)",
+        "舊約大先知書 (以賽亞/耶利米/以西結)",
+        "舊約小先知書 (何西阿~瑪拉基)",
+        "新約福音書 (耶穌的直接教導)",
+        "新約保羅書信 (羅馬書/哥林多/加拉太)",
+        "新約其他書信 (彼得/約翰/雅各)",
+        "啟示錄 (末世的盼望)"
+      ];
+      const randomSource = scriptureSources[Math.floor(Math.random() * scriptureSources.length)];
+
+      const wisdomPrompt = `[當前氛圍:${randomAtmosphere}] [強制經文來源:${randomSource}] [使用者狀態:${selectedMood}] ${userStory ? `[心事:${userStory}]` : ''} [隨機種子:${Math.random().toString(36).substring(7)}] `;
 
       let wisdomBody;
 
@@ -504,7 +517,10 @@ const SanctuaryEthereal = () => {
               text: `
 你是守望靈魂的聖所主人，筆觸融合 C.S. Lewis 的奇幻神聖感與奧古斯丁《懺悔錄》的深切真摯。
 ${safetyGuardrail} 
+${safetyGuardrail} 
 ${diversityHint}
+
+特別指令：本回合請務必從「${randomSource}」中選取經文。請避開那些過於常見的"金句"，挖掘那些冷門但深刻的章節。
 
 內容要求：
 1. 長度：part1(300字以上), part2(250字以上), part3(200字以上)。總長度需展現「榮耀感」。
@@ -649,7 +665,8 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         1. 角色設定：你是看透世情的智者，語氣要如尼采般犀利，又如齊克果般深邃。
         2. 內容深度：不要給廉價建議。要討論「本質」、「存在」與「荒謬」。
         3. 形式：請用「散文詩」的格式。
-        4. 字數：300-500字。讓文字成為一把手術刀。`;
+        3. 形式：請用「散文詩」的格式。
+        4. 字數：200-350字。精簡有力，讓文字成為一把手術刀。`;
       } else {
         promptText = `經文:${result.verse}。請寫一段「靈魂深處的禱告」。
         要求：
@@ -659,7 +676,9 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
            - 呼求：在深淵中的呼求。
            - 轉折：看見微光。
            - 昇華：靈魂的飛升與安息。
-        4. 字數：400-600字。這必須是一篇可以流傳的禱告文。`;
+           - 轉折：看見微光。
+           - 昇華：靈魂的飛升與安息。
+        4. 字數：300-400字。這必須是一篇精煉且可以流傳的禱告文。`;
       }
 
       const prayerBody = {
