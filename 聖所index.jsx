@@ -457,8 +457,8 @@ const SanctuaryEthereal = () => {
 
     const utterance = new SpeechSynthesisUtterance(ttsText);
     utterance.lang = 'zh-TW';
-    utterance.rate = mode === 'truth' ? 0.9 : 0.7; // Truth is faster/sharper
-    utterance.pitch = mode === 'truth' ? 0.5 : 0.85; // Truth is deeper
+    utterance.rate = mode === 'truth' ? 1.0 : 0.9;
+    utterance.pitch = 1.0; // Restoring natural pitch to avoid robotic distortion
 
     const voices = window.speechSynthesis.getVoices();
     const bestVoice = voices.find(v => v.lang.includes('zh-TW') && v.name.includes('Google')) ||
