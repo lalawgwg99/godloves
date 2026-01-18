@@ -584,7 +584,6 @@ const SanctuaryEthereal = () => {
       >
         {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5 text-amber-500" />}
       </button>
-
       {/* 恩典日記入口 */}
       {history.length > 0 && (
         <button
@@ -595,33 +594,62 @@ const SanctuaryEthereal = () => {
         </button>
       )}
 
-      {/* 核心問題 */}
-      <Flame className="w-12 h-12 text-amber-500/80 mb-12 animate-pulse drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
-      <h1 className="font-serif text-3xl md:text-5xl font-light text-white mb-16 tracking-[0.2em] leading-relaxed drop-shadow-lg">
-        此刻，你的心<br />在哪裡流浪？
-      </h1>
+      {/* 背景：神聖之光 (Divine Light) */}
+      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150vw] h-[80vh] bg-gradient-radial from-amber-600/10 via-amber-900/5 to-transparent blur-3xl pointer-events-none animate-[pulse_8s_ease-in-out_infinite]" />
 
-      {/* 漂浮關鍵字 (Grid on Mobile, Flex on Desktop) */}
-      <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-4 max-w-2xl px-6 w-full">
-        {MOOD_PILLS.map(({ label, icon: Icon, color }) => (
-          <button
-            key={label}
-            onClick={() => {
-              setSelectedMood(label);
-              setViewState('input');
-              setTimeout(() => inputRef.current?.focus(), 100);
-            }}
-            className="group px-6 py-4 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-300 font-serif text-sm transition-all duration-500 flex items-center justify-center gap-3 hover:bg-white/10 hover:border-amber-500/50 hover:text-white hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-          >
-            <Icon className={`w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:${color} transition-all duration-500`} />
-            <span className="tracking-widest">{label}</span>
-          </button>
-        ))}
+      {/* 頂部品牌 */}
+      <div className="absolute top-8 left-0 right-0 flex justify-center items-center gap-3 opacity-60 z-20">
+        <Sun className="w-4 h-4 text-amber-500/60 animate-[spin_12s_linear_infinite]" />
+        <span className="text-[10px] tracking-[0.4em] uppercase text-white/60 font-light">Sanctuary Ethereal</span>
+      </div>
+
+      {/* 音效控制 */}
+      <button
+        onClick={toggleSound}
+        className="absolute top-8 right-8 p-3 text-stone-600 hover:text-amber-500 transition-colors"
+      >
+        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5 text-amber-500" />}
+      </button>
+
+      {/* 核心問題區域 */}
+      <div className="relative z-10 flex flex-col items-center">
+
+        {/* 中心光芒 (God Rays Container) */}
+        <div className="relative mb-12">
+          {/* 旋轉光暈 */}
+          <div className="absolute inset-0 bg-amber-500/20 blur-[60px] rounded-full animate-[pulse_4s_ease-in-out_infinite]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-conic from-transparent via-amber-500/10 to-transparent blur-xl animate-[spin_8s_linear_infinite] opacity-50" />
+
+          {/* 火焰圖標 */}
+          <Flame className="relative w-14 h-14 text-amber-400 drop-shadow-[0_0_25px_rgba(245,158,11,0.8)] animate-[bounce_3s_ease-in-out_infinite]" />
+        </div>
+
+        <h1 className="font-serif text-3xl md:text-5xl font-light text-transparent bg-clip-text bg-gradient-to-r from-stone-200 via-white to-stone-200 mb-16 tracking-[0.2em] leading-relaxed drop-shadow-2xl text-center">
+          此刻，你的心<br />在哪裡流浪？
+        </h1>
+
+        {/* 漂浮關鍵字 (Grid on Mobile, Flex on Desktop) */}
+        <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-4 max-w-2xl px-6 w-full">
+          {MOOD_PILLS.map(({ label, icon: Icon, color }) => (
+            <button
+              key={label}
+              onClick={() => {
+                setSelectedMood(label);
+                setViewState('input');
+                setTimeout(() => inputRef.current?.focus(), 100);
+              }}
+              className="group px-6 py-4 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-300 font-serif text-sm transition-all duration-500 flex items-center justify-center gap-3 hover:bg-white/10 hover:border-amber-500/50 hover:text-white hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:-translate-y-1"
+            >
+              <Icon className={`w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:${color} transition-all duration-500`} />
+              <span className="tracking-widest">{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 底部提示 */}
-      <p className="absolute bottom-12 text-stone-700 text-xs tracking-[0.2em] font-light">
-        點選一個狀態，開始傾訴
+      <p className="absolute bottom-12 text-stone-600/50 text-xs tracking-[0.3em] font-light animate-pulse">
+        點選一個狀態，領受溫暖
       </p>
     </div>
   );
