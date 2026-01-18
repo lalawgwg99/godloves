@@ -239,7 +239,7 @@ const EtherealReveal = ({ text, speed = 40, className, onComplete }) => {
 
 // --- Component: 粒子背景 (星塵效果) ---
 // --- Component: 粒子背景 (星塵/電子海) ---
-const ParticleField = ({ viewState, isPlaying, mode }) => {
+const ParticleField = ({ viewState, isPlaying, mode, isDissolving }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -299,6 +299,10 @@ const ParticleField = ({ viewState, isPlaying, mode }) => {
           const dy = centerY - p.y;
           p.x += dx * 0.03;
           p.y += dy * 0.03;
+        } else if (isDissolving) {
+          // 🌫️ 塵埃歸處：加速飛升 (Ascension)
+          p.y -= 2; // Rapid upward movement
+          p.x += Math.sin(time * 2 + p.phase) * 0.5; // Wafting
         } else {
           // 飄游模式
           p.x += p.speedX;
@@ -341,7 +345,7 @@ const ParticleField = ({ viewState, isPlaying, mode }) => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
     };
-  }, [viewState, isPlaying, mode]); // 依賴變更時重啟動畫
+  }, [viewState, isPlaying, mode, isDissolving]); // 依賴變更時重啟動畫
 
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-40 transition-opacity duration-1000" />;
 };
@@ -366,6 +370,7 @@ const SanctuaryEthereal = () => {
   const [isPrayerLoading, setIsPrayerLoading] = useState(false);
   const [showPart2, setShowPart2] = useState(false);
   const [showPart3, setShowPart3] = useState(false);
+  const [isDissolving, setIsDissolving] = useState(false); // 🌫️ Dissolve State
 
   // 🤝 Phase 2: Communion (Realtime)
   const [onlineCount, setOnlineCount] = useState(1);
@@ -541,6 +546,21 @@ const SanctuaryEthereal = () => {
   }, []);
 
   // 工具函式
+  // 🌫️ 塵埃歸處 (Dissolve Transition)
+  const handleDissolve = (nextState = 'idle') => {
+    setIsDissolving(true);
+    setTimeout(() => {
+      setViewState(nextState);
+      setIsDissolving(false);
+      // Reset generic states logic if needed
+      if (nextState === 'idle') {
+        setResult(null);
+        setPrayer('');
+        setImageUrl('');
+      }
+    }, 1000); // Wait for animation
+  };
+
   const cleanJsonString = (str) => {
     if (!str) return "{}";
     // Remove markdown code blocks
@@ -1168,8 +1188,9 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
   // 3. 連結中：只有呼吸的光
 
   // 4. 應許顯現：全螢幕沉浸式 (Cinematic Result)
+  // 4. 應許顯現：全螢幕沉浸式 (Cinematic Result)
   const renderResult = () => (
-    <div className="relative min-h-screen w-full overflow-hidden bg-black animate-in fade-in duration-1000 perspective-1000">
+    <div className={`relative min-h-screen w-full overflow-hidden bg-black animate-in fade-in duration-1000 perspective-1000 ${isDissolving ? 'animate-out fade-out zoom-out-95 duration-1000' : ''}`}>
 
       {/* 背景層：圖片即背景 (Ken Burns Effect + Parallax) */}
       <div className="absolute inset-0 z-0" style={bgStyle}>
@@ -1418,7 +1439,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
           {/* 重新開始 */}
           <div className="text-center pt-8">
             <button
-              onClick={() => { setViewState('idle'); setUserStory(''); setCharCount(0); }}
+              onClick={() => handleDissolve('idle')}
               className="inline-flex items-center gap-2 text-stone-600 text-xs tracking-[0.2em] hover:text-amber-500 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
@@ -1523,7 +1544,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
   return (
     <div className="relative min-h-screen bg-[#050506] text-stone-200 overflow-hidden font-sans selection:bg-amber-900/30 selection:text-amber-100">
       {/* 粒子背景 (Audio Reactive & Mode Aware) */}
-      <ParticleField viewState={viewState} isPlaying={isPlaying} mode={mode} />
+      <ParticleField viewState={viewState} isPlaying={isPlaying} mode={mode} isDissolving={isDissolving} />
 
       {/* 🌠 流星效果層 */}
       {meteors.map(timestamp => (
