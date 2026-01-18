@@ -42,12 +42,13 @@ const {
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
-const MODEL_TEXT = "gemini-3-flash";
-const MODEL_IMAGE = "imagen-4.0-generate-001";
-
 // ☁️ Cloud Sanctuary (Supabase)
 const SUPABASE_URL = "https://twtfdaglknppkdgihjfe.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_RQL4WxJyav143AUD0jvyFw_6RX4l-fj";
+
+// 🤖 AI Model Configuration (With Fallback)
+const MODELS_TEXT = ["gemini-exp-1206", "gemini-2.0-flash-exp", "gemini-1.5-flash"];
+const MODELS_IMAGE = ["imagen-3.0-generate-001", "imagen-4.0-generate-001"];
 let supabase = null;
 if (window.supabase) {
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -438,22 +439,33 @@ const SanctuaryEthereal = () => {
     localStorage.setItem('sanctuary_journal', JSON.stringify(newHistory));
   };
 
-  const callGemini = async (url, body, retries = 3) => {
+  const callGemini = async (urls, body, retries = 3) => {
     const delays = [1000, 2000, 4000];
-    for (let i = 0; i < retries; i++) {
-      try {
-        const res = await fetch('/api/gemini', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, body })
-        });
-        if (!res.ok) throw new Error(`Server Busy ${res.status} `);
-        return await res.json();
-      } catch (e) {
-        if (i === retries - 1) throw e;
-        await new Promise(r => setTimeout(r, delays[i]));
+    const urlList = Array.isArray(urls) ? urls : [urls];
+
+    for (const url of urlList) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const res = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, body })
+          });
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          if (data.error) throw new Error(data.error.message || "Model Error");
+          return data;
+        } catch (e) {
+          console.warn(`Attempt failed for ${url}:`, e.message);
+          if (i === retries - 1) continue; // Try next URL/Model
+          await new Promise(r => setTimeout(r, delays[i]));
+        }
       }
     }
+    throw new Error("所有模型調用均失敗，請檢查 API Key 或端點設定。");
   };
 
   // 核心邏輯：靜心傾聽
@@ -520,10 +532,16 @@ const SanctuaryEthereal = () => {
         };
       }
 
-      const wisdomData = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent`, wisdomBody);
+      let modelUrls = MODELS_TEXT.map(m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`);
+      const wisdomData = await callGemini(modelUrls, wisdomBody);
       wisdomResult = JSON.parse(cleanJsonString(wisdomData.candidates[0].content.parts[0].text));
     } catch (e) {
-      console.warn("Fallback used:", e);
+      console.error("AI Connection Failed:", e);
+      // 可視化錯誤提示，方便除錯
+      if (viewState === 'processing') {
+        setStatusText(`斷開與聖域的連結: ${e.message.slice(0, 20)}...`);
+        setTimeout(() => setViewState('idle'), 3000);
+      }
     }
 
     setResult(wisdomResult);
@@ -534,7 +552,8 @@ const SanctuaryEthereal = () => {
         instances: { prompt: `${STYLE_ANCHOR}, ${wisdomResult.image_prompt}` },
         parameters: { sampleCount: 1 }
       };
-      const imageData = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_IMAGE}:predict`, imageBody);
+      let imageUrls = MODELS_IMAGE.map(m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:predict`);
+      const imageData = await callGemini(imageUrls, imageBody);
       setImageUrl(`data:image/png;base64,${imageData.predictions[0].bytesBase64Encoded}`);
     } catch (e) { console.warn("Image gen failed:", e); }
 
@@ -616,7 +635,8 @@ const SanctuaryEthereal = () => {
         contents: [{ parts: [{ text: promptText }] }],
       };
 
-      const data = await callGemini(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEXT}:generateContent`, prayerBody);
+      let modelUrls = MODELS_TEXT.map(m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`);
+      const data = await callGemini(modelUrls, prayerBody);
       const generatedText = data.candidates[0].content.parts[0].text;
       setPrayer(generatedText);
 
