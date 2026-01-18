@@ -60,16 +60,16 @@ const STYLE_ANCHOR = "style: soft sacred minimalism, chiaroscuro lighting, conte
 
 // 🌈 情緒關鍵字（漂浮 Mood Pills）
 const MOOD_PILLS = [
-  { label: '感到沉重', icon: CloudRain, color: 'text-slate-400' },
-  { label: '迷失方向', icon: Compass, color: 'text-cyan-400' },
-  { label: '需要勇氣', icon: Shield, color: 'text-amber-600' },
-  { label: '尋求安慰', icon: Heart, color: 'text-rose-400' },
-  { label: '渴望平靜', icon: Feather, color: 'text-teal-300' },
-  { label: '想要感恩', icon: Sun, color: 'text-yellow-300' },
-  { label: '關係修復', icon: Users, color: 'text-pink-300' },
-  { label: '身心疲憊', icon: Moon, color: 'text-indigo-300' },
-  { label: '等候途中', icon: Hourglass, color: 'text-stone-400' },
-  { label: '重新開始', icon: Sprout, color: 'text-emerald-400' }
+  { label: '感到沉重', icon: CloudRain, color: 'text-slate-400', glow: 'bg-slate-500', shadow: 'shadow-slate-500' },
+  { label: '迷失方向', icon: Compass, color: 'text-cyan-400', glow: 'bg-cyan-500', shadow: 'shadow-cyan-500' },
+  { label: '需要勇氣', icon: Shield, color: 'text-amber-600', glow: 'bg-amber-600', shadow: 'shadow-amber-600' },
+  { label: '尋求安慰', icon: Heart, color: 'text-rose-400', glow: 'bg-rose-500', shadow: 'shadow-rose-500' },
+  { label: '渴望平靜', icon: Feather, color: 'text-teal-300', glow: 'bg-teal-500', shadow: 'shadow-teal-500' },
+  { label: '想要感恩', icon: Sun, color: 'text-yellow-300', glow: 'bg-yellow-500', shadow: 'shadow-yellow-500' },
+  { label: '關係修復', icon: Users, color: 'text-pink-300', glow: 'bg-pink-500', shadow: 'shadow-pink-500' },
+  { label: '身心疲憊', icon: Moon, color: 'text-indigo-300', glow: 'bg-indigo-500', shadow: 'shadow-indigo-500' },
+  { label: '等候途中', icon: Hourglass, color: 'text-stone-400', glow: 'bg-stone-500', shadow: 'shadow-stone-500' },
+  { label: '重新開始', icon: Sprout, color: 'text-emerald-400', glow: 'bg-emerald-500', shadow: 'shadow-emerald-500' }
 ];
 
 // 🛡️ 恩典資料庫 (Fallback)
@@ -356,32 +356,37 @@ const SanctuaryEthereal = () => {
   // ... (handleListen, stopAudio, etc.) -> No changes needed in logic functions
 
   // 3. 連結中：靈魂呼吸與粒子匯聚
-  const renderProcessing = () => (
-    <div className="flex flex-col items-center justify-center min-h-screen relative overflow-hidden">
+  const renderProcessing = () => {
+    // 🎨 Dynamic Mood Mapping
+    const currentMood = MOOD_PILLS.find(m => m.label === selectedMood) || { glow: 'bg-amber-500', shadow: 'shadow-amber-500' };
 
-      {/* 靈魂呼吸光球 (Breathing Orb) */}
-      <div className="relative flex items-center justify-center">
-        {/* 外層光暈：緩慢擴散 */}
-        <div className="absolute w-64 h-64 bg-amber-600/10 rounded-full animate-[ping_4s_cubic-bezier(0,0,0.2,1)_infinite]" />
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen relative overflow-hidden">
 
-        {/* 中層光暈：主要呼吸 */}
-        <div className="absolute w-32 h-32 bg-amber-500/20 rounded-full animate-[pulse_3s_ease-in-out_infinite] blur-xl" />
+        {/* 靈魂呼吸光球 (Breathing Orb) - Dynamic Color */}
+        <div className="relative flex items-center justify-center">
+          {/* 外層光暈：緩慢擴散 */}
+          <div className={`absolute w-64 h-64 ${currentMood.glow}/10 rounded-full animate-[ping_4s_cubic-bezier(0,0,0.2,1)_infinite]`} />
 
-        {/* 核心光點 */}
-        <div className="relative w-2 h-2 bg-white/90 rounded-full shadow-[0_0_40px_rgba(245,158,11,0.8)] animate-pulse" />
+          {/* 中層光暈：主要呼吸 */}
+          <div className={`absolute w-32 h-32 ${currentMood.glow}/20 rounded-full animate-[pulse_3s_ease-in-out_infinite] blur-xl`} />
+
+          {/* 核心光點 */}
+          <div className={`relative w-2 h-2 bg-white/90 rounded-full shadow-[0_0_40px_rgba(255,255,255,0.8)] ${currentMood.shadow}/80 animate-pulse`} />
+        </div>
+
+        {/* 情境式獨白文字 */}
+        <div className="mt-24 h-8 flex items-center justify-center">
+          <p key={statusText} className="font-serif text-stone-400 tracking-[0.5em] text-sm animate-in fade-in duration-1000 slide-in-from-bottom-2">
+            {statusText}
+          </p>
+        </div>
+
+        {/* 底部微光裝飾 - Dynamic Tint */}
+        <div className={`absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-${currentMood.glow.split('-')[1]}-${currentMood.glow.split('-')[2]}/10 to-transparent pointer-events-none`} />
       </div>
-
-      {/* 情境式獨白文字 */}
-      <div className="mt-24 h-8 flex items-center justify-center">
-        <p key={statusText} className="font-serif text-stone-400 tracking-[0.5em] text-sm animate-in fade-in duration-1000 slide-in-from-bottom-2">
-          {statusText}
-        </p>
-      </div>
-
-      {/* 底部微光裝飾 */}
-      <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-amber-900/10 to-transparent pointer-events-none" />
-    </div>
-  );
+    );
+  };
 
   // ☁️ Fetch Cloud Journals
   const fetchJournals = async () => {
