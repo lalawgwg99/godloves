@@ -111,9 +111,9 @@ const useAmbientSound = () => {
 
       const now = ctx.currentTime;
       masterGain.gain.setValueAtTime(0, now);
-      // 🔥 Volume Reduced to 0.3
-      masterGain.gain.linearRampToValueAtTime(0.3, now + 5);
-      setIsMuted(false);
+      // 🔥 Music Default OFF (Paused/Muted)
+      // masterGain.gain.linearRampToValueAtTime(0.3, now + 5); 
+      setIsMuted(true);
     } catch (e) {
       console.warn("Audio Context init failed", e);
     }
