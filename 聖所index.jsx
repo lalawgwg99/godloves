@@ -147,7 +147,7 @@ const TypewriterText = ({ text, speed = 30, className, onComplete }) => {
 };
 
 // --- Component: 粒子背景 (星塵效果) ---
-const ParticleField = () => {
+const ParticleField = ({ viewState }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -165,27 +165,47 @@ const ParticleField = () => {
     window.addEventListener('resize', resize);
 
     // 創建粒子
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 60; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         size: Math.random() * 2 + 0.5,
-        speedY: Math.random() * 0.3 + 0.1,
-        opacity: Math.random() * 0.5 + 0.2
+        speedX: Math.random() * 0.5 - 0.25,
+        speedY: Math.random() * 0.5 - 0.25,
+        opacity: Math.random() * 0.5 + 0.1
       });
     }
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const isConverging = viewState === 'processing';
+
       particles.forEach(p => {
-        p.y -= p.speedY;
-        if (p.y < 0) {
-          p.y = canvas.height;
-          p.x = Math.random() * canvas.width;
+        if (isConverging) {
+          // 匯聚模式：加速飛向中心
+          const dx = centerX - p.x;
+          const dy = centerY - p.y;
+          p.x += dx * 0.02;
+          p.y += dy * 0.02;
+          p.opacity = Math.min(p.opacity + 0.01, 0.8); // 變亮
+        } else {
+          // 飄游模式
+          p.x += p.speedX;
+          p.y -= p.speedY; // 微微上升
+
+          // 邊界檢查
+          if (p.x < 0) p.x = canvas.width;
+          if (p.x > canvas.width) p.x = 0;
+          if (p.y < 0) p.y = canvas.height;
+          if (p.y > canvas.height) p.y = 0;
         }
+
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(217, 119, 6, ${p.opacity})`;
+        ctx.fillStyle = `rgba(245, 158, 11, ${p.opacity})`; // Amber-500
         ctx.fill();
       });
       animationId = requestAnimationFrame(animate);
@@ -196,9 +216,9 @@ const ParticleField = () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [viewState]);
 
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-40" />;
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-40 transition-opacity duration-1000" />;
 };
 
 // --- Main Component ---
@@ -219,9 +239,60 @@ const SanctuaryEthereal = () => {
   const [showPart2, setShowPart2] = useState(false);
   const [showPart3, setShowPart3] = useState(false);
 
+  // Cinematic Status Text State
+  const [statusText, setStatusText] = useState("正在傾聽...");
+
   const inputRef = useRef(null);
   const audioSourceRef = useRef(null);
   const { isMuted, toggleSound, initAudio } = useAmbientSound();
+
+  // Cinematic Text Cycling
+  useEffect(() => {
+    if (viewState !== 'processing') return;
+
+    const messages = ["正在傾聽...", "感知重量...", "連接深淵...", "尋求應許...", "領受光..."];
+    let index = 0;
+    setStatusText(messages[0]);
+
+    const interval = setInterval(() => {
+      index = (index + 1) % messages.length;
+      setStatusText(messages[index]);
+    }, 2000); // Change text every 2s
+
+    return () => clearInterval(interval);
+  }, [viewState]);
+
+  // 初始化 ... (rest of the component)
+
+  // ... (handleListen, stopAudio, etc.) -> No changes needed in logic functions
+
+  // 3. 連結中：靈魂呼吸與粒子匯聚
+  const renderProcessing = () => (
+    <div className="flex flex-col items-center justify-center min-h-screen relative overflow-hidden">
+
+      {/* 靈魂呼吸光球 (Breathing Orb) */}
+      <div className="relative flex items-center justify-center">
+        {/* 外層光暈：緩慢擴散 */}
+        <div className="absolute w-64 h-64 bg-amber-600/10 rounded-full animate-[ping_4s_cubic-bezier(0,0,0.2,1)_infinite]" />
+
+        {/* 中層光暈：主要呼吸 */}
+        <div className="absolute w-32 h-32 bg-amber-500/20 rounded-full animate-[pulse_3s_ease-in-out_infinite] blur-xl" />
+
+        {/* 核心光點 */}
+        <div className="relative w-2 h-2 bg-white/90 rounded-full shadow-[0_0_40px_rgba(245,158,11,0.8)] animate-pulse" />
+      </div>
+
+      {/* 情境式獨白文字 */}
+      <div className="mt-24 h-8 flex items-center justify-center">
+        <p className="font-serif text-stone-400 tracking-[0.5em] text-sm animate-[fade-in_1s_ease-in-out] key={statusText}">
+          {statusText}
+        </p>
+      </div>
+
+      {/* 底部微光裝飾 */}
+      <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-amber-900/10 to-transparent pointer-events-none" />
+    </div>
+  );
 
   // 初始化
   useEffect(() => {
@@ -525,13 +596,13 @@ const SanctuaryEthereal = () => {
       )}
 
       {/* 核心問題 */}
-      <Flame className="w-10 h-10 text-amber-500/40 mb-12 animate-pulse" />
-      <h1 className="font-serif text-3xl md:text-5xl font-light text-white/90 mb-16 tracking-widest leading-relaxed">
+      <Flame className="w-12 h-12 text-amber-500/80 mb-12 animate-pulse drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
+      <h1 className="font-serif text-3xl md:text-5xl font-light text-white mb-16 tracking-[0.2em] leading-relaxed drop-shadow-lg">
         此刻，你的心<br />在哪裡流浪？
       </h1>
 
-      {/* 漂浮關鍵字 (取代下拉選單) */}
-      <div className="flex flex-wrap justify-center gap-3 max-w-2xl px-4">
+      {/* 漂浮關鍵字 (Grid on Mobile, Flex on Desktop) */}
+      <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-4 max-w-2xl px-6 w-full">
         {MOOD_PILLS.map(({ label, icon: Icon, color }) => (
           <button
             key={label}
@@ -540,10 +611,10 @@ const SanctuaryEthereal = () => {
               setViewState('input');
               setTimeout(() => inputRef.current?.focus(), 100);
             }}
-            className="group px-6 py-3.5 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-400 font-serif text-sm hover:bg-white/10 hover:border-amber-500/40 hover:text-amber-100 transition-all duration-500 flex items-center gap-2"
+            className="group px-6 py-4 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-300 font-serif text-sm transition-all duration-500 flex items-center justify-center gap-3 hover:bg-white/10 hover:border-amber-500/50 hover:text-white hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]"
           >
-            <Icon className={`w-4 h-4 opacity-70 group-hover:opacity-100 group-hover:${color} transition-all`} />
-            {label}
+            <Icon className={`w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:${color} transition-all duration-500`} />
+            <span className="tracking-widest">{label}</span>
           </button>
         ))}
       </div>
@@ -812,14 +883,20 @@ const SanctuaryEthereal = () => {
               className="w-full text-left bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-amber-500/30 transition-all group"
             >
               <div className="flex justify-between items-start mb-3">
-                <span className="text-amber-500/70 font-serif text-sm">{entry.reference}</span>
-                <span className="text-[10px] text-stone-600">{entry.date}</span>
+                <span className="text-amber-500/60 text-xs tracking-wider">{entry.date}</span>
+                <span className="text-stone-500 text-xs">{entry.reference}</span>
               </div>
-              <p className="text-stone-400 text-sm line-clamp-2 group-hover:text-stone-200 transition-colors font-serif">
-                「{entry.verse}」
+              <p className="text-white/90 font-serif leading-relaxed line-clamp-2">
+                {entry.verse}
               </p>
             </button>
           ))}
+          {history.length === 0 && (
+            <div className="text-center text-stone-600 font-serif mt-20">
+              <Feather className="w-10 h-10 mx-auto mb-4 opacity-30" />
+              <p>還沒有日記，試著開始第一次傾訴吧。</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -829,28 +906,13 @@ const SanctuaryEthereal = () => {
   // 🎬 MAIN RENDER
   // ================================================================
   return (
-    <div className="bg-[#050506] text-white min-h-screen selection:bg-amber-500/30 overflow-x-hidden">
+    { viewState === 'input' && renderInput()}
+{ viewState === 'processing' && renderProcessing() }
+{ viewState === 'result' && result && renderResult() }
 
-      {/* 粒子背景 (僅在非 Result 狀態顯示) */}
-      {viewState !== 'result' && <ParticleField />}
-
-      {/* 萬用動態背景光暈 */}
-      {viewState !== 'result' && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-30%] left-[-20%] w-[80%] h-[80%] bg-amber-900/8 blur-[180px] animate-[pulse_10s_ease-in-out_infinite]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-stone-800/10 blur-[150px] animate-[pulse_14s_ease-in-out_infinite_reverse]" />
-        </div>
-      )}
-
-      {/* 狀態機視圖 */}
-      {viewState === 'idle' && renderIdle()}
-      {viewState === 'input' && renderInput()}
-      {viewState === 'processing' && renderProcessing()}
-      {viewState === 'result' && result && renderResult()}
-
-      {/* 恩典日記浮層 */}
-      {showHistory && renderHistory()}
-    </div>
+{/* 恩典日記浮層 */ }
+{ showHistory && renderHistory() }
+    </div >
   );
 };
 
