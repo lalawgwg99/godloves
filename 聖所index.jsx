@@ -725,25 +725,28 @@ const SanctuaryEthereal = () => {
         </div>
       </div>
 
-      {/* 底部提示 */}
-      <p className="absolute bottom-20 text-stone-600/50 text-xs tracking-[0.3em] font-light animate-pulse">
-        點選一個狀態，領受溫暖
-      </p>
+      {/* 底部區域：提示與支持 (Grouped to prevent overlap) */}
+      <div className="absolute bottom-10 flex flex-col items-center gap-6 w-full pointer-events-none">
+        {/* 提示文字 */}
+        <p className="text-stone-600/50 text-[10px] tracking-[0.3em] font-light animate-pulse">
+          點選一個狀態，領受溫暖
+        </p>
 
-      {/* Buy Me a Coffee (Custom Styled) */}
-      <a
-        href="https://www.buymeacoffee.com/laladoo99"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute bottom-6 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/30 transition-all duration-300 group"
-      >
-        <div className="p-1 rounded-full bg-amber-500/10 group-hover:bg-amber-500/20">
-          <Coffee className="w-3 h-3 text-amber-500/60 group-hover:text-amber-400" />
-        </div>
-        <span className="text-[10px] tracking-widest text-stone-600 group-hover:text-amber-200/80 font-serif">
-          支持聖所
-        </span>
-      </a>
+        {/* Buy Me a Coffee */}
+        <a
+          href="https://www.buymeacoffee.com/laladoo99"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/30 transition-all duration-300 group backdrop-blur-sm"
+        >
+          <div className="p-1 rounded-full bg-amber-500/10 group-hover:bg-amber-500/20">
+            <Coffee className="w-3 h-3 text-amber-500/60 group-hover:text-amber-400" />
+          </div>
+          <span className="text-[10px] tracking-widest text-stone-600 group-hover:text-amber-200/80 font-serif">
+            支持聖所
+          </span>
+        </a>
+      </div>
     </div>
   );
 
