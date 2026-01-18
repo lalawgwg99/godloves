@@ -118,7 +118,7 @@ const RitualHoldButton = ({ onComplete, children, className = "", mode = 'grace'
                 `}
             >
                 <span className={`tracking-[0.2em] font-serif ${isHolding ? 'opacity-50 blur-[1px]' : 'opacity-100'}`}>
-                    {isHolding ? 'HOLDING...' : children}
+                    {children}
                 </span>
             </button>
         </div>
