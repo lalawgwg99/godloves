@@ -1070,18 +1070,18 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                   <div className="font-mono text-[10px] tracking-[0.4em] text-cyan-500/60 uppercase">
                     Refinement {result.reference && ` // ${result.reference}`}
                   </div>
-                  <h2 className="font-serif text-3xl md:text-5xl font-bold text-white leading-tight glitch-text">
+                  <h2 className="font-serif text-2xl md:text-5xl font-bold text-white leading-tight glitch-text px-2">
                     「{result.verse}」
                   </h2>
                 </div>
 
                 {/* 2. Central Obsidian Block (Surface & Logic) */}
-                <div className="grid md:grid-cols-2 gap-12 items-start">
-                  <div className="space-y-8 animate-in fade-in slide-in-from-left-10 duration-1000 delay-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
+                  <div className="space-y-6 animate-in fade-in slide-in-from-left-10 duration-1000 delay-300">
                     <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-[9px] font-mono tracking-widest text-cyan-400 uppercase">
                       Surface Question
                     </div>
-                    <p className="text-white/70 font-serif text-xl leading-relaxed italic">
+                    <p className="text-white/70 font-serif text-lg md:text-xl leading-relaxed italic">
                       <TypewriterText key={`truth-sf-${result.surface_question}`} text={result.surface_question} speed={30} onComplete={() => setShowPart2(true)} />
                     </p>
                   </div>
@@ -1091,7 +1091,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                       <div className="inline-block px-3 py-1 bg-white/5 border border-white/10 rounded text-[9px] font-mono tracking-widest text-stone-500 uppercase">
                         Logical Analysis
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto md:overflow-visible pr-2 md:pr-0 custom-scrollbar">
                         {result.depth_logic?.map((logic, idx) => (
                           <div key={idx} className="flex gap-4 items-start group">
                             <span className="font-mono text-cyan-600 text-[10px] mt-2">0{idx + 1}</span>
@@ -1117,16 +1117,16 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                       <div className="h-px flex-1 bg-gradient-to-l from-transparent to-cyan-500/30" />
                     </div>
 
-                    <div className="bg-[#0a0a0b] border border-white/5 p-10 md:p-16 rounded-[2rem] shadow-2xl relative overflow-hidden group">
+                    <div className="bg-[#0a0a0b] border border-white/5 p-6 md:p-16 rounded-[2rem] shadow-2xl relative overflow-hidden group">
                       {/* Subliminal Background Text */}
-                      <div className="absolute top-0 right-0 p-4 font-mono text-[40px] text-white/[0.02] select-none pointer-events-none tracking-tighter uppercase font-bold">
+                      <div className="absolute top-0 right-0 p-4 font-mono text-[30px] md:text-[40px] text-white/[0.02] select-none pointer-events-none tracking-tighter uppercase font-bold">
                         EXISTENTIAL
                       </div>
 
-                      <div className="relative space-y-12">
+                      <div className="relative space-y-8 md:space-y-12">
                         <div className="space-y-4">
                           <label className="font-mono text-[9px] tracking-[0.5em] text-cyan-400/80 uppercase">Root Cause</label>
-                          <p className="text-white/90 font-serif text-xl md:text-2xl leading-relaxed">
+                          <p className="text-white/90 font-serif text-lg md:text-2xl leading-relaxed">
                             <TypewriterText key={`truth-rc-${result.root_cause}`} text={result.root_cause} speed={25} onComplete={() => setShowPart3(true)} />
                           </p>
                         </div>
@@ -1134,11 +1134,11 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                         {showPart3 && (
                           <div className="space-y-6 pt-12 border-t border-white/5 animate-in slide-in-from-bottom-5 duration-700">
                             <label className="font-mono text-[9px] tracking-[0.5em] text-cyan-400 uppercase">The First Question</label>
-                            <h2 className="text-3xl md:text-5xl font-serif text-white font-bold leading-tight tracking-tight">
+                            <h2 className="text-2xl md:text-5xl font-serif text-white font-bold leading-tight tracking-tight">
                               {result.first_question}
                             </h2>
                             <div className="pt-8">
-                              <p className="text-stone-500 font-serif italic text-base border-l-2 border-cyan-500/30 pl-6 leading-relaxed">
+                              <p className="text-stone-500 font-serif italic text-sm md:text-base border-l-2 border-cyan-500/30 pl-6 leading-relaxed">
                                 "{result.socrates_comment}"
                               </p>
                             </div>
