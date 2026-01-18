@@ -47,7 +47,7 @@ const SUPABASE_URL = "https://twtfdaglknppkdgihjfe.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_RQL4WxJyav143AUD0jvyFw_6RX4l-fj";
 
 // 🤖 AI Model Configuration (2026 Standards)
-const MODELS_TEXT = ["gemini-3-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+const MODELS_TEXT = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]; // Reverted to stable 2.0/1.5 for reliability
 const MODELS_IMAGE = ["imagen-4.0-generate-001", "imagen-3.0-generate-001"];
 let supabase = null;
 if (window.supabase) {
@@ -541,7 +541,18 @@ const SanctuaryEthereal = () => {
   }, []);
 
   // 工具函式
-  const cleanJsonString = (str) => str ? str.replace(/```json\n ?| ```/g, "").trim() : "{}";
+  const cleanJsonString = (str) => {
+    if (!str) return "{}";
+    // Remove markdown code blocks
+    let cleaned = str.replace(/```json/g, "").replace(/```/g, "");
+    // Locate the first '{' and last '}' to extract valid JSON object
+    const firstOpen = cleaned.indexOf('{');
+    const lastClose = cleaned.lastIndexOf('}');
+    if (firstOpen !== -1 && lastClose !== -1) {
+      cleaned = cleaned.substring(firstOpen, lastClose + 1);
+    }
+    return cleaned.trim();
+  };
 
   const saveToHistory = (newEntry) => {
     const entry = { id: Date.now(), date: new Date().toLocaleDateString(), ...newEntry };
