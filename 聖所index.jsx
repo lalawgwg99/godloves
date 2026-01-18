@@ -167,7 +167,8 @@ const TypewriterText = ({ text, speed = 30, className, onComplete }) => {
 };
 
 // --- Component: 粒子背景 (星塵效果) ---
-const ParticleField = ({ viewState }) => {
+// --- Component: 粒子背景 (星塵/電子海) ---
+const ParticleField = ({ viewState, isPlaying, mode }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -176,6 +177,7 @@ const ParticleField = ({ viewState }) => {
     const ctx = canvas.getContext('2d');
     let animationId;
     let particles = [];
+    let time = 0; // 用於音頻模擬的時間軸
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -184,48 +186,80 @@ const ParticleField = ({ viewState }) => {
     resize();
     window.addEventListener('resize', resize);
 
+    // 根據模式設定粒子顏色
+    const getParticleColor = (opacity) => {
+      if (mode === 'truth') {
+        return `rgba(6, 182, 212, ${opacity})`; // Cyan-500
+      }
+      return `rgba(245, 158, 11, ${opacity})`; // Amber-500
+    };
+
     // 創建粒子
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 80; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.5,
+        baseSize: Math.random() * 2 + 0.5,
+        size: 0, // 動態計算
         speedX: Math.random() * 0.5 - 0.25,
         speedY: Math.random() * 0.5 - 0.25,
-        opacity: Math.random() * 0.5 + 0.1
+        baseOpacity: Math.random() * 0.5 + 0.1,
+        phase: Math.random() * Math.PI * 2 // 每個粒子的波動相位不同
       });
     }
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      time += 0.05; // 時間流動
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const isConverging = viewState === 'processing';
 
+      // 模擬音頻能量 (Simulated Audio Energy)
+      // 如果正在播放，產生一個波動值 (0 ~ 1)
+      const audioEnergy = isPlaying ? (Math.sin(time * 5) + 1) * 0.5 : 0;
+
       particles.forEach(p => {
+        // 1. 位置更新 (Physics)
         if (isConverging) {
           // 匯聚模式：加速飛向中心
           const dx = centerX - p.x;
           const dy = centerY - p.y;
-          p.x += dx * 0.02;
-          p.y += dy * 0.02;
-          p.opacity = Math.min(p.opacity + 0.01, 0.8); // 變亮
+          p.x += dx * 0.03;
+          p.y += dy * 0.03;
         } else {
           // 飄游模式
           p.x += p.speedX;
-          p.y -= p.speedY; // 微微上升
+          p.y -= p.speedY;
 
-          // 邊界檢查
-          if (p.x < 0) p.x = canvas.width;
-          if (p.x > canvas.width) p.x = 0;
-          if (p.y < 0) p.y = canvas.height;
-          if (p.y > canvas.height) p.y = 0;
+          // 音頻反應 (Audio Reactivity - Position Jitter)
+          if (isPlaying) {
+            p.x += Math.sin(time + p.phase) * 0.2;
+            p.y += Math.cos(time + p.phase) * 0.2;
+          }
         }
+
+        // 邊界檢查
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        // 2. 視覺渲染 (Rendering)
+
+        // 大小反應：在說話時，粒子會隨波放縮
+        const sizePulse = isPlaying ? (Math.sin(time * 10 + p.phase) * 1.5 * audioEnergy) : 0;
+        p.size = Math.max(0.1, p.baseSize + sizePulse);
+
+        // 透明度反應
+        let currentOpacity = p.baseOpacity;
+        if (isConverging) currentOpacity = Math.min(currentOpacity + 0.2, 0.9);
+        if (isPlaying) currentOpacity += audioEnergy * 0.3; // 說話時變亮
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(245, 158, 11, ${p.opacity})`; // Amber-500
+        ctx.fillStyle = getParticleColor(currentOpacity);
         ctx.fill();
       });
       animationId = requestAnimationFrame(animate);
@@ -236,7 +270,7 @@ const ParticleField = ({ viewState }) => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
     };
-  }, [viewState]);
+  }, [viewState, isPlaying, mode]); // 依賴變更時重啟動畫
 
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-40 transition-opacity duration-1000" />;
 };
@@ -1399,8 +1433,8 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
   // ================================================================
   return (
     <div className="relative min-h-screen bg-[#050506] text-stone-200 overflow-hidden font-sans selection:bg-amber-900/30 selection:text-amber-100">
-      {/* 粒子背景 (Pass viewState) */}
-      <ParticleField viewState={viewState} />
+      {/* 粒子背景 (Audio Reactive & Mode Aware) */}
+      <ParticleField viewState={viewState} isPlaying={isPlaying} mode={mode} />
 
       {/* 🌠 流星效果層 */}
       {meteors.map(timestamp => (
