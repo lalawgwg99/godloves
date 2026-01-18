@@ -1415,10 +1415,8 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
           <div className="min-h-screen w-full max-w-lg ml-auto bg-[#0a0a0b]/90 border-l border-white/5 p-8 md:p-12 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
 
             <div className="flex justify-between items-center mb-16">
-              <h2 className="text-xl font-serif text-amber-100/90 tracking-[0.3em]">聖所門戶</h2>
-              <button onClick={() => setShowPortal(false)} className="p-2 text-stone-500 hover:text-white transition-colors">
-                <X className="w-6 h-6" />
-              </button>
+              <TheWord size="lg" className="tracking-[0.3em] text-amber-100/90">聖所門戶</TheWord>
+              <GhostButton onClick={() => setShowPortal(false)} icon={X} />
             </div>
 
             <div className="space-y-12">
@@ -1486,7 +1484,8 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             </div>
           </div>
         </div>
-      )}
+      )
+      }
 
       {/* --- 🕊️ REFINED TOP BAR --- */}
       <div className="fixed top-0 left-0 right-0 z-[150] flex items-center justify-between p-6 md:p-10 pointer-events-none">
@@ -1529,63 +1528,65 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
 
       {/* 📖 Story Modal */}
-      {showStory && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl bg-[#0c0a09] border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+      {
+        showStory && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-300">
+            <div className="w-full max-w-2xl bg-[#0c0a09] border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
 
-            <button onClick={() => setShowStory(false)} className="absolute top-6 right-6 text-stone-500 hover:text-white transition-colors">
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="space-y-8 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
-              <div className="text-center space-y-4">
-                <Feather className="w-12 h-12 text-amber-500/50 mx-auto" />
-                <h2 className="text-3xl font-serif text-amber-100 tracking-widest">關於聖所</h2>
-                <p className="text-xs text-amber-500/60 uppercase tracking-[0.3em]">The Story of Sanctuary</p>
+              <div className="absolute top-6 right-6">
+                <GhostButton onClick={() => setShowStory(false)} icon={X} />
               </div>
 
-              <div className="space-y-10 text-stone-300 font-serif leading-relaxed text-lg tracking-wide">
-                <p className="indent-8">
-                  你好，我是這個虛擬聖所的建造者。在這個喧囂而急促、被演算法徹底撕裂的數位時代，我們往往在無止盡的資訊流中遺落了靈魂的壓艙石。
-                </p>
-                <p className="indent-8">
-                  聖所 (Sanctuary) 並非宗教的狹隘宣教，而是為所有在荒原漫遊的人建立的<b>「靈魂避難所」</b>。這裡不提供標準答案，也沒有短暫的點讚愉悅。這裡只有你，和一束跨越維度、為你降下的光。
-                </p>
-
-                <div className="py-6 flex flex-col items-center">
-                  <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent mb-10" />
-                  <h3 className="text-amber-500/80 tracking-[0.4em] text-sm font-bold uppercase mb-8">⎯ 領受指引 ⎯</h3>
-
-                  <div className="grid grid-cols-1 gap-8 w-full">
-                    {[
-                      { step: "01", title: "誠實觀照", detail: "在首頁選擇此刻最真實的心境，不需偽裝堅強。" },
-                      { step: "02", title: "全然交付", detail: "在信箋中寫下你的重負，让 AI 將其轉化為應許。" },
-                      { step: "03", title: "靜心領受", detail: "待光芒匯聚，收下專屬於你的經文、影像與禱告。" },
-                      { step: "04", title: "化作流星", detail: "点击收藏或分享，讓這份恩典在雲端持續共鳴。" }
-                    ].map(item => (
-                      <div key={item.step} className="flex items-start gap-6 group hover:translate-x-1 transition-transform">
-                        <span className="text-amber-500/40 text-2xl font-mono leading-none">{item.step}</span>
-                        <div>
-                          <h4 className="text-white font-bold tracking-widest mb-1">{item.title}</h4>
-                          <p className="text-stone-500 text-sm font-light leading-relaxed">{item.detail}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent mt-12" />
+              <div className="space-y-8 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                <div className="text-center space-y-4">
+                  <Feather className="w-12 h-12 text-amber-500/50 mx-auto" />
+                  <TheWord size="lg" className="tracking-widest text-amber-100">關於聖所</TheWord>
+                  <TheLogic className="text-amber-500/60 uppercase tracking-[0.3em] border-none">The Story of Sanctuary</TheLogic>
                 </div>
 
-                <div className="pt-4 text-center">
-                  <p className="text-amber-500/50 text-sm italic tracking-widest animate-pulse">
-                    "願你在這片光中，尋得永恆的安息。"
+                <div className="space-y-10 text-stone-300 font-serif leading-relaxed text-lg tracking-wide">
+                  <p className="indent-8">
+                    你好，我是這個虛擬聖所的建造者。在這個喧囂而急促、被演算法徹底撕裂的數位時代，我們往往在無止盡的資訊流中遺落了靈魂的壓艙石。
                   </p>
+                  <p className="indent-8">
+                    聖所 (Sanctuary) 並非宗教的狹隘宣教，而是為所有在荒原漫遊的人建立的<b>「靈魂避難所」</b>。這裡不提供標準答案，也沒有短暫的點讚愉悅。這裡只有你，和一束跨越維度、為你降下的光。
+                  </p>
+
+                  <div className="py-6 flex flex-col items-center">
+                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent mb-10" />
+                    <TheLogic className="text-amber-500/80 tracking-[0.4em] font-bold uppercase mb-8 border-none">⎯ 領受指引 ⎯</TheLogic>
+
+                    <div className="grid grid-cols-1 gap-8 w-full">
+                      {[
+                        { step: "01", title: "誠實觀照", detail: "在首頁選擇此刻最真實的心境，不需偽裝堅強。" },
+                        { step: "02", title: "全然交付", detail: "在信箋中寫下你的重負，让 AI 將其轉化為應許。" },
+                        { step: "03", title: "靜心領受", detail: "待光芒匯聚，收下專屬於你的經文、影像與禱告。" },
+                        { step: "04", title: "化作流星", detail: "点击收藏或分享，讓這份恩典在雲端持續共鳴。" }
+                      ].map(item => (
+                        <div key={item.step} className="flex items-start gap-6 group hover:translate-x-1 transition-transform">
+                          <span className="text-amber-500/40 text-2xl font-mono leading-none">{item.step}</span>
+                          <div>
+                            <h4 className="text-white font-bold tracking-widest mb-1">{item.title}</h4>
+                            <p className="text-stone-500 text-sm font-light leading-relaxed">{item.detail}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent mt-12" />
+                  </div>
+
+                  <div className="pt-4 text-center">
+                    <TheWhisper className="text-amber-500/50 text-sm tracking-widest animate-pulse">
+                      "願你在這片光中，尋得永恆的安息。"
+                    </TheWhisper>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* 視圖切換 */}
       <div className="relative z-10">
@@ -1598,7 +1599,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
       {/* 浮層 */}
       {showHistory && renderHistory()}
 
-    </div>
+    </div >
   );
 };
 
