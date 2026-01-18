@@ -46,9 +46,9 @@ const {
 const SUPABASE_URL = "https://twtfdaglknppkdgihjfe.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_RQL4WxJyav143AUD0jvyFw_6RX4l-fj";
 
-// 🤖 AI Model Configuration (With Fallback)
-const MODELS_TEXT = ["gemini-exp-1206", "gemini-2.0-flash-exp", "gemini-1.5-flash"];
-const MODELS_IMAGE = ["imagen-3.0-generate-001", "imagen-4.0-generate-001"];
+// 🤖 AI Model Configuration (2026 Standards)
+const MODELS_TEXT = ["gemini-3-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+const MODELS_IMAGE = ["imagen-4.0-generate-001", "imagen-3.0-generate-001"];
 let supabase = null;
 if (window.supabase) {
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -453,10 +453,14 @@ const SanctuaryEthereal = () => {
           });
           if (!res.ok) {
             const errData = await res.json();
+            console.error(`❌ Model ${url.split('/').slice(-1)} failed:`, errData.error);
             throw new Error(errData.error || `HTTP ${res.status}`);
           }
           const data = await res.json();
-          if (data.error) throw new Error(data.error.message || "Model Error");
+          if (data.error) {
+            console.error(`❌ Model API Error:`, data.error);
+            throw new Error(data.error.message || "Model Error");
+          }
           return data;
         } catch (e) {
           console.warn(`Attempt failed for ${url}:`, e.message);
