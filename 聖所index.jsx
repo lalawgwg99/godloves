@@ -738,22 +738,54 @@ ${diversityHint}
         ctx.textAlign = 'center';
         ctx.fillText('光之聖所', canvas.width / 2, 100);
 
-        const verseMaxWidth = canvas.width - 160;
-        ctx.font = 'bold 42px serif';
-        const verseLines = wrapText(ctx, `「${result.verse}」`, verseMaxWidth);
+        const contentMaxWidth = canvas.width - 160;
         const lineHeight = 54;
-        let startY = canvas.height - 180 - verseLines.length * lineHeight - 70;
-        if (startY < 200) startY = 200;
 
-        ctx.fillStyle = '#ffffff';
-        verseLines.forEach(line => {
-          ctx.fillText(line, canvas.width / 2, startY);
-          startY += lineHeight;
-        });
+        if (mode === 'truth') {
+          // Hammer of Truth Rendering
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = 'bold 36px serif';
+          ctx.fillText('HAMMER OF TRUTH', canvas.width / 2, 180);
 
-        ctx.fillStyle = '#d4d4d8';
-        ctx.font = '26px serif';
-        ctx.fillText(`— ${result.reference}`, canvas.width / 2, startY + 30);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 50px serif';
+          const titleLines = wrapText(ctx, result.first_question, contentMaxWidth);
+          let startY = 350;
+          titleLines.forEach(line => {
+            ctx.fillText(line, canvas.width / 2, startY);
+            startY += 70;
+          });
+
+          ctx.fillStyle = '#a8a29e';
+          ctx.font = '28px serif';
+          const causeLines = wrapText(ctx, `根本原因：${result.root_cause}`, contentMaxWidth);
+          startY += 50;
+          causeLines.forEach(line => {
+            ctx.fillText(line, canvas.width / 2, startY);
+            startY += 40;
+          });
+
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = 'italic 30px serif';
+          ctx.fillText(`"${result.socrates_comment}"`, canvas.width / 2, startY + 80);
+
+        } else {
+          // Grace Mode Rendering
+          ctx.font = 'bold 42px serif';
+          const verseLines = wrapText(ctx, `「${result.verse}」`, contentMaxWidth);
+          let startY = canvas.height - 180 - verseLines.length * lineHeight - 70;
+          if (startY < 250) startY = 250;
+
+          ctx.fillStyle = '#ffffff';
+          verseLines.forEach(line => {
+            ctx.fillText(line, canvas.width / 2, startY);
+            startY += lineHeight;
+          });
+
+          ctx.fillStyle = '#d4d4d8';
+          ctx.font = '26px serif';
+          ctx.fillText(`— ${result.reference}`, canvas.width / 2, startY + 30);
+        }
 
         ctx.strokeStyle = '#78716c';
         ctx.lineWidth = 1;
@@ -792,7 +824,13 @@ ${diversityHint}
     try {
       const cardBlob = await generateBlessingCard();
       const file = new File([cardBlob], 'blessing.png', { type: 'image/png' });
-      const blessingText = `【光之聖所】\n\n${result.part1}\n\n${result.part2}\n\n✨ https://godloves.pages.dev`;
+
+      let blessingText = '';
+      if (mode === 'truth') {
+        blessingText = `【光之聖所 - 真理之鎚】\n\n🔹 第一問題：${result.first_question}\n🔹 根本原因：${result.root_cause}\n\n「${result.socrates_comment}」\n\n✨ https://godloves.pages.dev`;
+      } else {
+        blessingText = `【光之聖所 - 恩典時刻】\n\n「${result.verse}」\n\n${result.part1.slice(0, 100)}...\n\n✨ https://godloves.pages.dev`;
+      }
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({ text: blessingText, files: [file] });
