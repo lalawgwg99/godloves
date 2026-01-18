@@ -671,6 +671,15 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
       const generatedText = data.candidates[0].content.parts[0].text;
       setPrayer(generatedText);
 
+      // 🤝 Communion: 向聖域發送星火 (Broadcast Spark)
+      if (supabase) {
+        supabase.channel('sanctuary_room').send({
+          type: 'broadcast',
+          event: 'prayer-spark',
+          payload: { timestamp: Date.now() }
+        });
+      }
+
       // ☁️ Save to Cloud Sanctuary
       if (supabase) {
         try {
@@ -1285,44 +1294,88 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
     </div>
   );
 
-  // 5. 恩典日記浮層
+  // 5. 生命之書：生命之卷 (Book of Life - Cinematic Timeline)
   const renderHistory = () => (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl animate-in fade-in duration-500">
-      <div className="flex flex-col h-full p-6">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="font-serif text-xl text-amber-500/80 tracking-[0.2em]">恩典日記</h2>
-          <button onClick={() => setShowHistory(false)} className="text-stone-500 hover:text-white transition-colors p-2">
-            <X className="w-5 h-5" />
+    <div className="fixed inset-0 z-[300] bg-[#050506]/98 backdrop-blur-3xl animate-in fade-in duration-700 overflow-y-auto custom-scrollbar">
+      <div className="min-h-screen w-full max-w-2xl mx-auto py-24 px-6 md:px-12 flex flex-col">
+
+        <div className="flex justify-between items-end mb-24">
+          <div className="space-y-4">
+            <h2 className="font-serif text-3xl md:text-5xl text-white tracking-[0.2em] font-bold">生命之卷</h2>
+            <p className="text-stone-500 font-serif italic text-sm md:text-base">"凡留下的，皆在光中被紀念。"</p>
+          </div>
+          <button onClick={() => setShowHistory(false)} className="group flex flex-col items-center gap-2 text-stone-500 hover:text-white transition-colors">
+            <div className="p-4 rounded-full border border-white/10 group-hover:border-white/30 transition-all">
+              <X className="w-6 h-6" />
+            </div>
+            <span className="text-[9px] uppercase tracking-widest opacity-60">閉卷</span>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
-          {history.map((entry) => (
-            <button
-              key={entry.id}
-              onClick={() => {
-                setResult(entry);
-                setImageUrl('');
-                setShowHistory(false);
-                setViewState('result');
-              }}
-              className="w-full text-left bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-amber-500/30 transition-all group"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <span className="text-amber-500/60 text-xs tracking-wider">{entry.date}</span>
-                <span className="text-stone-500 text-xs">{entry.reference}</span>
-              </div>
-              <p className="text-white/90 font-serif leading-relaxed line-clamp-2">
-                {entry.verse}
-              </p>
-            </button>
+        <div className="relative space-y-16">
+          {/* Vertical Timeline Thread */}
+          <div className="absolute left-[31px] top-0 bottom-0 w-px bg-gradient-to-b from-amber-500/40 via-amber-500/5 to-transparent hidden md:block" />
+
+          {history.map((entry, idx) => (
+            <div key={entry.id || idx} className="relative pl-0 md:pl-20 group">
+              {/* Timeline Node */}
+              <div className="absolute left-[24px] top-2 w-4 h-4 rounded-full border-2 border-amber-500/40 bg-black z-10 hidden md:block group-hover:scale-125 group-hover:border-amber-500 transition-all duration-500" />
+
+              <button
+                onClick={() => {
+                  setResult(entry);
+                  setImageUrl('');
+                  setShowHistory(false);
+                  setViewState('result');
+                }}
+                className="w-full text-left bg-white/[0.02] border border-white/[0.05] rounded-3xl p-8 md:p-12 hover:bg-white/[0.05] hover:border-amber-500/20 transition-all group/card relative overflow-hidden"
+              >
+                {/* Mode Badge */}
+                <div className="absolute top-0 right-0 px-6 py-2 bg-amber-500/10 border-b border-l border-white/5 rounded-bl-2xl">
+                  <div className="text-[8px] font-mono tracking-[0.3em] text-amber-500 uppercase">{entry.mode || 'grace'}</div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 text-stone-500 font-serif text-xs md:text-sm tracking-widest">
+                    <span>{entry.date}</span>
+                    <span className="opacity-30">/</span>
+                    <span className="text-amber-500/60 uppercase">{entry.reference || 'Personal insight'}</span>
+                  </div>
+
+                  <h3 className="text-white/90 font-serif text-xl md:text-2xl leading-relaxed italic group-hover/card:text-white transition-colors">
+                    「{entry.verse || entry.first_question}」
+                  </h3>
+
+                  {entry.root_cause && (
+                    <p className="text-stone-500 font-mono text-[10px] leading-snug line-clamp-2 uppercase tracking-tight opacity-40 group-hover/card:opacity-60 transition-opacity">
+                      Root: {entry.root_cause}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 text-[9px] text-amber-500/40 font-mono tracking-widest pt-4">
+                    <Sparkles className="w-3 h-3" />
+                    READ FULL SCROLL
+                  </div>
+                </div>
+              </button>
+            </div>
           ))}
+
           {history.length === 0 && (
-            <div className="text-center text-stone-600 font-serif mt-20">
-              <Feather className="w-10 h-10 mx-auto mb-4 opacity-30" />
-              <p>還沒有日記，試著開始第一次傾訴吧。</p>
+            <div className="py-32 text-center space-y-8 opacity-40">
+              <Feather className="w-16 h-16 mx-auto text-stone-700 animate-bounce" />
+              <div className="space-y-4">
+                <p className="font-serif text-xl text-stone-500">卷軸尚未展開</p>
+                <p className="text-stone-600 text-sm">在此地停駐，留下你靈魂的迴聲。</p>
+              </div>
             </div>
           )}
+        </div>
+
+        <div className="mt-32 pb-24 text-center">
+          <p className="text-stone-800 font-serif text-xs italic tracking-widest">
+            "所有被遺忘的，其實都在更高處被銘刻。"
+          </p>
         </div>
       </div>
     </div>
