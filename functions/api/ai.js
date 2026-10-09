@@ -22,15 +22,19 @@ const OR_API = 'https://openrouter.ai/api/v1/chat/completions';
 const PL_API = 'https://text.pollinations.ai/openai';
 
 // 後端總時限：超過就收手，前端會顯示備援文案
-const TOTAL_BUDGET_MS = 42000;
+const TOTAL_BUDGET_MS = 75000;
 
 const GUARD = '\n全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
 
-async function fetchWithTimeout(url, opts, ms) {
+// 超時覆蓋「等 headers + 讀 body」全程：abort 會中斷 r.json() 的 body 讀取，
+// 避免 response 卡在半路上無限等待（之前 r.json 在保護之外是 bug）。
+async function fetchJson(url, opts, ms) {
 const ctl = new AbortController();
 const t = setTimeout(() => ctl.abort(), ms);
 try {
-return await fetch(url, {...opts, signal: ctl.signal});
+const r = await fetch(url, {...opts, signal: ctl.signal});
+const data = await r.json();
+return {ok: r.ok, status: r.status, data};
 } finally {
 clearTimeout(t);
 }
@@ -68,15 +72,14 @@ return [
 // 第一順位：pollinations（單次嘗試，超時 ms）
 async function tryPollinations(sysContent, user, ms) {
 try {
-const r = await fetchWithTimeout(PL_API, {
+const {ok, data} = await fetchJson(PL_API, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json'},
 body: JSON.stringify({ model: 'openai', messages: msgs(sysContent, user), temperature: 0.9}),
 }, ms);
-const d = await r.json();
-if (!r.ok) return null;
-const text = cleanModelText(extractText(d));
-if (text) return { text, model: (d && d.model) || 'pollinations'};
+if (!ok) return null;
+const text = cleanModelText(extractText(data));
+if (text) return { text, model: (data && data.model) || 'pollinations'};
 } catch (e) { /* 超時或斷線 */}
 return null;
 }
@@ -86,7 +89,7 @@ async function tryOpenRouter(apiKey, sysContent, user, msPerModel, timeLeft) {
 for (const model of OR_MODELS) {
 if (timeLeft() < 8000) break; // 時間不夠就別再試了
 try {
-const r = await fetchWithTimeout(OR_API, {
+const {ok, data} = await fetchJson(OR_API, {
 method: 'POST',
 headers: {
 'Content-Type': 'application/json',
@@ -101,9 +104,8 @@ temperature: 0.9,
 max_tokens: 2500,
 }),
 }, Math.min(msPerModel, timeLeft()));
-const d = await r.json();
-if (!r.ok) continue;
-const text = cleanModelText(extractText(d));
+if (!ok) continue;
+const text = cleanModelText(extractText(data));
 if (text) return { text, model};
 } catch (e) { /* 換下一個模型 */}
 }
@@ -135,14 +137,14 @@ JSON.stringify({ error: '缺少 user 訊息'}),
 }
 const sysContent = (system || '你是聖所 Sanctuary 的靈性陪伴者。') + GUARD;
 
-// 1. pollinations 主攻（20 秒）
+// 1. OpenRouter 主攻（健康時 5~10 秒；每模型 25 秒）
 let result = null;
-if (timeLeft() > 5000) {
-result = await tryPollinations(sysContent, user, Math.min(20000, timeLeft()));
+if (timeLeft() > 8000 && env.OPENROUTER_API_KEY) {
+result = await tryOpenRouter(env.OPENROUTER_API_KEY, sysContent, user, 25000, timeLeft);
 }
-// 2. OpenRouter 備援（每模型 18 秒）
-if (!result && timeLeft() > 12000 && env.OPENROUTER_API_KEY) {
-result = await tryOpenRouter(env.OPENROUTER_API_KEY, sysContent, user, 18000, timeLeft);
+// 2. pollinations 備援（長文生成約 20~30 秒，給 35 秒）
+if (!result && timeLeft() > 10000) {
+result = await tryPollinations(sysContent, user, Math.min(35000, timeLeft()));
 }
 
 if (!result) {

@@ -583,8 +583,8 @@ const SanctuaryEthereal = () => {
   const callAIDirect = async (system, user) => {
     const guard = '\n【輸出規範】全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
     const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), 20000);
-    let res;
+    const timer = setTimeout(() => ctl.abort(), 35000);
+    let res, data;
     try {
       res = await fetch('https://text.pollinations.ai/openai', { signal: ctl.signal,
       method: 'POST',
@@ -598,8 +598,8 @@ const SanctuaryEthereal = () => {
         temperature: 0.9
       })
     });
+      data = await res.json();
     } finally { clearTimeout(timer); }
-    const data = await res.json();
     if (!res.ok) throw new Error(`direct HTTP ${res.status}`);
     const rawText = data && data.choices && data.choices[0] && data.choices[0].message
       ? data.choices[0].message.content : '';
