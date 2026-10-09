@@ -579,7 +579,29 @@ const SanctuaryEthereal = () => {
     localStorage.setItem('sanctuary_journal', JSON.stringify(newHistory));
   };
 
-  // 經後端 /api/ai 呼叫（OpenRouter 免費模型，後端做模型備援）
+  // 經後端 /api/ai 呼叫（免 key）；後端若被限流，改由瀏覽器直連 pollinations（不同 IP 額度）
+  const callAIDirect = async (system, user) => {
+    const guard = '\n【輸出規範】全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
+    const res = await fetch('https://text.pollinations.ai/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai',
+        messages: [
+          { role: 'system', content: (system || '你是聖所 Sanctuary 的靈性陪伴者。') + guard },
+          { role: 'user', content: user }
+        ],
+        temperature: 0.9
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(`direct HTTP ${res.status}`);
+    const text = data && data.choices && data.choices[0] && data.choices[0].message
+      ? data.choices[0].message.content : '';
+    if (!text) throw new Error('direct empty');
+    return text;
+  };
+
   const callAI = async (system, user, retries = 2) => {
     const delays = [1500, 3000];
     for (let i = 0; i <= retries; i++) {
@@ -597,9 +619,17 @@ const SanctuaryEthereal = () => {
         return data.text;
       } catch (e) {
         console.warn(`AI attempt ${i + 1} failed:`, e.message);
-        if (i === retries) throw new Error("聖域暫時靜默，請稍後再試。");
+        if (i === retries) break;
         await new Promise(r => setTimeout(r, delays[i]));
       }
+    }
+    // 後端走不通時，瀏覽器直連（換一組 IP 額度）
+    try {
+      console.warn('↪ fallback to direct pollinations');
+      return await callAIDirect(system, user);
+    } catch (e) {
+      console.warn('direct failed:', e.message);
+      throw new Error("聖域暫時靜默，請稍後再試。");
     }
   };
 

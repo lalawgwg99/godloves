@@ -48,8 +48,10 @@ JSON.stringify({ error: '缺少 user 訊息'}),
 const sysContent = (system || '你是聖所 Sanctuary 的靈性陪伴者。') + GUARD;
 let lastErr = 'unknown';
 
-// 最多試 2 次（免費共享服務偶爾超時）
-for (let attempt = 0; attempt < 2; attempt++) {
+// 最多試 3 次，退避等待（免費共享服務偶爾限流 402）
+const waits = [2000, 6000];
+for (let attempt = 0; attempt < 3; attempt++) {
+  if (attempt > 0) await new Promise(r => setTimeout(r, waits[attempt - 1]));
 try {
 const r = await fetchWithTimeout(TEXT_API, {
 method: 'POST',
