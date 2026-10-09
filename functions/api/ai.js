@@ -24,7 +24,7 @@ const PL_API = 'https://text.pollinations.ai/openai';
 // 後端總時限：超過就收手，前端會顯示備援文案
 const TOTAL_BUDGET_MS = 75000;
 
-const GUARD = '\n全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
+const GUARD = '\n【輸出規範—非常重要】全程使用繁體中文（台灣用語）。絕對禁止簡體字：你们→你們、发→發、为→為、让→讓、过→過、时→時、来→來、国→國、学→學、对→對，一律寫繁體。只回傳要求的內容，不要加任何前言後語。';
 
 // 超時覆蓋「等 headers + 讀 body」全程：abort 會中斷 r.json() 的 body 讀取，
 // 避免 response 卡在半路上無限等待（之前 r.json 在保護之外是 bug）。
@@ -56,9 +56,17 @@ function looksLikeThinkingLeak(text) {
 const head = String(text).slice(0, 600).toLowerCase();
 return /here'?s (a|my) thinking|thinking process|analyze (the)?user request/.test(head);
 }
+// 簡體字偵測：繁體中文裡絕不出現的字。若出現 2 個以上視為簡體輸出，
+// 退回讓呼叫方換下一個模型重試（備援文案本身是繁體，不會有問題）。
+const SIMPLIFIED_RE = /[们发为让过时来国学对门问经头点电话车无万与专东丝丢两严丽义乌乐乔习书买乱争亲华从仓仪优会传伤伦伟发变实宁审写宽宝寿将尔尘尽层届属岁岂岛岩岭岳岸峡峰岗昼风飞马麦黄黑齐龙龟]/;
+function looksSimplified(text) {
+// 清單裡的字在繁體中絕不出現，出現 1 個就是簡體輸出
+return SIMPLIFIED_RE.test(String(text));
+}
 function cleanModelText(raw) {
 const text = stripThinking(raw);
 if (!text || looksLikeThinkingLeak(text)) return null;
+if (looksSimplified(text)) return null;
 return text;
 }
 
