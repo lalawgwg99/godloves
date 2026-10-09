@@ -582,7 +582,11 @@ const SanctuaryEthereal = () => {
   // 經後端 /api/ai 呼叫（免 key）；後端若被限流，改由瀏覽器直連 pollinations（不同 IP 額度）
   const callAIDirect = async (system, user) => {
     const guard = '\n【輸出規範】全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
-    const res = await fetch('https://text.pollinations.ai/openai', {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 20000);
+    let res;
+    try {
+      res = await fetch('https://text.pollinations.ai/openai', { signal: ctl.signal,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -594,6 +598,7 @@ const SanctuaryEthereal = () => {
         temperature: 0.9
       })
     });
+    } finally { clearTimeout(timer); }
     const data = await res.json();
     if (!res.ok) throw new Error(`direct HTTP ${res.status}`);
     const rawText = data && data.choices && data.choices[0] && data.choices[0].message
@@ -606,30 +611,26 @@ const SanctuaryEthereal = () => {
     return text;
   };
 
-  const callAI = async (system, user, retries = 2) => {
-    const delays = [1500, 3000];
-    for (let i = 0; i <= retries; i++) {
-      try {
-        const res = await fetch('/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ system, user })
-        });
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          console.error(`❌ AI failed:`, data.error || res.status, data.message || '');
-          throw new Error(data.message || data.error || `HTTP ${res.status}`);
-        }
-        return data.text;
-      } catch (e) {
-        console.warn(`AI attempt ${i + 1} failed:`, e.message);
-        if (i === retries) break;
-        await new Promise(r => setTimeout(r, delays[i]));
-      }
-    }
-    // 後端走不通時，瀏覽器直連（換一組 IP 額度）
+  // 後端打一次（後端內部已有 pollinations→OpenRouter 備援鏈＋42秒總時限），
+  // 不行就瀏覽器直連一次（換一組 IP 額度），再不行就丟出讓呼叫方顯示備援文案。
+  // 不在前端重試：避免把後端整條鏈再跑好幾遍、讓使用者空等數分鐘。
+  const callAI = async (system, user) => {
     try {
-      console.warn('↪ fallback to direct pollinations');
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system, user })
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        console.error(`❌ AI failed:`, data.error || res.status, data.message || '');
+        throw new Error(data.message || data.error || `HTTP ${res.status}`);
+      }
+      return data.text;
+    } catch (e) {
+      console.warn('backend AI failed, trying direct:', e.message);
+    }
+    try {
       return await callAIDirect(system, user);
     } catch (e) {
       console.warn('direct failed:', e.message);
