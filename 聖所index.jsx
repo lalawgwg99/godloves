@@ -46,9 +46,7 @@ const {
 const SUPABASE_URL = "https://twtfdaglknppkdgihjfe.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_RQL4WxJyav143AUD0jvyFw_6RX4l-fj";
 
-// 🤖 AI Model Configuration (2026 Standards)
-const MODELS_TEXT = ["gemini-3-flash", "gemini-2.0-flash", "gemini-1.5-pro"]; // Reverted to stable 2.0/1.5 for reliability
-const MODELS_IMAGE = ["imagen-4.0-generate-001", "imagen-3.0-generate-001"];
+// 🤖 AI：文字經 /api/ai 走 OpenRouter 免費模型（後端統一 key＋模型備援）；圖片走 pollinations.ai（免 key）
 let supabase = null;
 if (window.supabase) {
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -581,37 +579,28 @@ const SanctuaryEthereal = () => {
     localStorage.setItem('sanctuary_journal', JSON.stringify(newHistory));
   };
 
-  const callGemini = async (urls, body, retries = 3) => {
-    const delays = [1000, 2000, 4000];
-    const urlList = Array.isArray(urls) ? urls : [urls];
-
-    for (const url of urlList) {
-      for (let i = 0; i < retries; i++) {
-        try {
-          const res = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url, body })
-          });
-          if (!res.ok) {
-            const errData = await res.json();
-            console.error(`❌ Model ${url.split('/').slice(-1)} failed:`, errData.error);
-            throw new Error(errData.error || `HTTP ${res.status}`);
-          }
-          const data = await res.json();
-          if (data.error) {
-            console.error(`❌ Model API Error:`, data.error);
-            throw new Error(data.error.message || "Model Error");
-          }
-          return data;
-        } catch (e) {
-          console.warn(`Attempt failed for ${url}:`, e.message);
-          if (i === retries - 1) continue; // Try next URL/Model
-          await new Promise(r => setTimeout(r, delays[i]));
+  // 經後端 /api/ai 呼叫（OpenRouter 免費模型，後端做模型備援）
+  const callAI = async (system, user, retries = 2) => {
+    const delays = [1500, 3000];
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ system, user })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          console.error(`❌ AI failed:`, data.error || res.status, data.message || '');
+          throw new Error(data.message || data.error || `HTTP ${res.status}`);
         }
+        return data.text;
+      } catch (e) {
+        console.warn(`AI attempt ${i + 1} failed:`, e.message);
+        if (i === retries) throw new Error("聖域暫時靜默，請稍後再試。");
+        await new Promise(r => setTimeout(r, delays[i]));
       }
     }
-    throw new Error("所有模型調用均失敗，請檢查 API Key 或端點設定。");
   };
 
   // 核心邏輯：靜心傾聽
@@ -721,9 +710,11 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         };
       }
 
-      let modelUrls = MODELS_TEXT.map(m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`);
-      const wisdomData = await callGemini(modelUrls, wisdomBody);
-      wisdomResult = JSON.parse(cleanJsonString(wisdomData.candidates[0].content.parts[0].text));
+      const rawWisdom = await callAI(
+        wisdomBody.systemInstruction.parts[0].text,
+        wisdomBody.contents[0].parts[0].text
+      );
+      wisdomResult = JSON.parse(cleanJsonString(rawWisdom));
     } catch (e) {
       console.error("AI Connection Failed:", e);
       // 可視化錯誤提示，方便除錯
@@ -735,15 +726,10 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
     setResult(wisdomResult);
 
-    // 圖片生成 (非阻塞)
+    // 圖片生成 (非阻塞)：pollinations.ai 免費生成，無需 key
     try {
-      const imageBody = {
-        instances: { prompt: `${STYLE_ANCHOR}, ${wisdomResult.image_prompt}` },
-        parameters: { sampleCount: 1 }
-      };
-      let imageUrls = MODELS_IMAGE.map(m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:predict`);
-      const imageData = await callGemini(imageUrls, imageBody);
-      setImageUrl(`data:image/png;base64,${imageData.predictions[0].bytesBase64Encoded}`);
+      const ip = encodeURIComponent(`${STYLE_ANCHOR}, ${wisdomResult.image_prompt || 'divine light, sacred silence'}`);
+      setImageUrl(`https://image.pollinations.ai/prompt/${ip}?width=1024&height=1024&nologo=true&model=flux`);
     } catch (e) { console.warn("Image gen failed:", e); }
 
     if (wisdomResult?.verse) saveToHistory(wisdomResult);
@@ -827,9 +813,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         contents: [{ parts: [{ text: promptText }] }],
       };
 
-      let modelUrls = MODELS_TEXT.map(m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`);
-      const data = await callGemini(modelUrls, prayerBody);
-      const generatedText = data.candidates[0].content.parts[0].text;
+      const generatedText = await callAI('', prayerBody.contents[0].parts[0].text);
       setPrayer(generatedText);
 
       // 🤝 Communion: 向聖域發送星火 (Broadcast Spark)
