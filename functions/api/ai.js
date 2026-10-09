@@ -5,12 +5,19 @@
 * 請求: { system: string, user: string}
 * 回傳: { text: string}（模型原始回覆文字；要求 JSON 時即為 JSON 字串）
 *
-* 文字走 pollinations.ai 免費文字 API（https://text.pollinations.ai/openai），
-* 無需任何 key、無需環境變數。圖片由前端直接打 pollinations.ai 圖床，同樣免 key。
+* 第一順位：OpenRouter 免費模型（:free only，絕不動帳戶餘額），
+* key 放在 Pages 環境變數 OPENROUTER_API_KEY，三個免費模型依序備援。
+* 第二順位：pollinations.ai 免費文字 API（免 key），當前者全滅時頂上。
+* 圖片由前端直接打 pollinations.ai 圖床（免 key）。
 */
 
-const TEXT_API = 'https://text.pollinations.ai/openai';
-const MODEL = 'openai'; // pollinations 預設主力模型
+const OR_MODELS = [
+'nvidia/nemotron-3.5-lightning:free',
+'google/gemma-4-26b-a4b-it:free',
+'meta-llama/llama-3.3-70b-instruct:free',
+];
+const OR_API = 'https://openrouter.ai/api/v1/chat/completions';
+const PL_API = 'https://text.pollinations.ai/openai';
 
 const GUARD = '\n全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
 
@@ -24,8 +31,71 @@ clearTimeout(t);
 }
 }
 
+function extractText(d) {
+return d && d.choices && d.choices[0] && d.choices[0].message
+? d.choices[0].message.content: '';
+}
+
+// 第一順位：OpenRouter 免費模型
+async function callOpenRouter(apiKey, sysContent, user) {
+for (const model of OR_MODELS) {
+try {
+const r = await fetchWithTimeout(OR_API, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+Authorization: `Bearer ${apiKey}`,
+'HTTP-Referer': 'https://godloves.pages.dev',
+'X-Title': 'Sanctuary',
+},
+body: JSON.stringify({
+model,
+messages: [
+{ role: 'system', content: sysContent},
+{ role: 'user', content: user},
+],
+temperature: 0.9,
+max_tokens: 2500,
+}),
+}, 45000);
+const d = await r.json();
+if (!r.ok) continue;
+const text = extractText(d);
+if (text) return { text, model};
+} catch (e) { /* 換下一個模型 */}
+}
+return null;
+}
+
+// 第二順位：pollinations 免費 API（免 key）
+async function callPollinations(sysContent, user) {
+const waits = [2000, 6000];
+for (let attempt = 0; attempt < 3; attempt++) {
+if (attempt > 0) await new Promise(r => setTimeout(r, waits[attempt - 1]));
+try {
+const r = await fetchWithTimeout(PL_API, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json'},
+body: JSON.stringify({
+model: 'openai',
+messages: [
+{ role: 'system', content: sysContent},
+{ role: 'user', content: user},
+],
+temperature: 0.9,
+}),
+}, 55000);
+const d = await r.json();
+if (!r.ok) continue;
+const text = extractText(d);
+if (text) return { text, model: (d && d.model) || 'pollinations'};
+} catch (e) { /* 重試 */}
+}
+return null;
+}
+
 export async function onRequestPost(context) {
-const { request} = context;
+const { request, env} = context;
 
 const corsHeaders = {
 'Access-Control-Allow-Origin': '*',
@@ -44,50 +114,22 @@ JSON.stringify({ error: '缺少 user 訊息'}),
 { status: 400, headers: {...corsHeaders, 'Content-Type': 'application/json'}}
 );
 }
-
 const sysContent = (system || '你是聖所 Sanctuary 的靈性陪伴者。') + GUARD;
-let lastErr = 'unknown';
 
-// 最多試 3 次，退避等待（免費共享服務偶爾限流 402）
-const waits = [2000, 6000];
-for (let attempt = 0; attempt < 3; attempt++) {
-  if (attempt > 0) await new Promise(r => setTimeout(r, waits[attempt - 1]));
-try {
-const r = await fetchWithTimeout(TEXT_API, {
-method: 'POST',
-headers: { 'Content-Type': 'application/json'},
-body: JSON.stringify({
-model: MODEL,
-messages: [
-{ role: 'system', content: sysContent},
-{ role: 'user', content: user},
-],
-temperature: 0.9,
-}),
-}, 55000);
-const d = await r.json();
-if (!r.ok) {
-lastErr = (d && d.error && d.error.message) || `HTTP ${r.status}`;
-continue;
-}
-const text = d && d.choices && d.choices[0] && d.choices[0].message
-? d.choices[0].message.content: '';
-if (!text) {
-lastErr = 'empty response';
-continue;
-}
-return new Response(
-JSON.stringify({ text, model: (d && d.model) || MODEL}),
-{ status: 200, headers: {...corsHeaders, 'Content-Type': 'application/json'}}
-);
-} catch (e) {
-lastErr = e.name === 'AbortError'? 'timeout': (e.message || String(e));
-}
-}
+let result = null;
+const apiKey = env.OPENROUTER_API_KEY;
+if (apiKey) result = await callOpenRouter(apiKey, sysContent, user);
+if (!result) result = await callPollinations(sysContent, user);
 
+if (!result) {
 return new Response(
-JSON.stringify({ error: 'AI_BUSY', message: '聖域暫時靜默，請稍後再試。', detail: lastErr}),
+JSON.stringify({ error: 'AI_BUSY', message: '聖域暫時靜默，請稍後再試。'}),
 { status: 502, headers: {...corsHeaders, 'Content-Type': 'application/json'}}
+);
+}
+return new Response(
+JSON.stringify({ text: result.text, model: result.model}),
+{ status: 200, headers: {...corsHeaders, 'Content-Type': 'application/json'}}
 );
 } catch (error) {
 return new Response(
