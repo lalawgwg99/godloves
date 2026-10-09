@@ -596,9 +596,13 @@ const SanctuaryEthereal = () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(`direct HTTP ${res.status}`);
-    const text = data && data.choices && data.choices[0] && data.choices[0].message
+    const rawText = data && data.choices && data.choices[0] && data.choices[0].message
       ? data.choices[0].message.content : '';
-    if (!text) throw new Error('direct empty');
+    if (!rawText) throw new Error('direct empty');
+    const text = String(rawText).replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    if (/here'?s (a|my) thinking|thinking process|analyze (the )?user request/i.test(text.slice(0, 600))) {
+      throw new Error('direct thinking leak');
+    }
     return text;
   };
 
@@ -1375,7 +1379,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
               {showPart3 && (
                 <div className="group animate-in fade-in duration-700">
                   <div className="flex items-center gap-4 mb-5 opacity-80">
-                    <TheLogic className="text-amber-500/70 border-none">靈魂的指引</TheLogic>
+                    <TheLogic className="text-amber-500/70 border-none">最終的祝福</TheLogic>
                     <div className="h-px w-12 bg-amber-500/30" />
                   </div>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">

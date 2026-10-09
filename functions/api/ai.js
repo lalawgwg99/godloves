@@ -36,6 +36,23 @@ return d && d.choices && d.choices[0] && d.choices[0].message
 ? d.choices[0].message.content: '';
 }
 
+// 清掉模型洩漏的內部思考：<think> 區塊移除；
+// 若開頭仍是英文思考痕跡（Here's a thinking process / Analyze User Request…），
+// 視為失敗，交給呼叫方換下一個模型重試。
+function stripThinking(text) {
+if (!text) return '';
+return String(text).replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+}
+function looksLikeThinkingLeak(text) {
+const head = String(text).slice(0, 600).toLowerCase();
+return /here'?s (a|my) thinking|thinking process|analyze (the )?user request/.test(head);
+}
+function cleanModelText(raw) {
+const text = stripThinking(raw);
+if (!text || looksLikeThinkingLeak(text)) return null;
+return text;
+}
+
 // 第一順位：OpenRouter 免費模型
 async function callOpenRouter(apiKey, sysContent, user) {
 for (const model of OR_MODELS) {
@@ -60,8 +77,8 @@ max_tokens: 2500,
 }, 45000);
 const d = await r.json();
 if (!r.ok) continue;
-const text = extractText(d);
-if (text) return { text, model};
+const text = cleanModelText(extractText(d));
+if (text) return { text, model };
 } catch (e) { /* 換下一個模型 */}
 }
 return null;
@@ -87,8 +104,8 @@ temperature: 0.9,
 }, 55000);
 const d = await r.json();
 if (!r.ok) continue;
-const text = extractText(d);
-if (text) return { text, model: (d && d.model) || 'pollinations'};
+const text = cleanModelText(extractText(d));
+if (text) return { text, model: (d && d.model) || 'pollinations' };
 } catch (e) { /* 重試 */}
 }
 return null;
