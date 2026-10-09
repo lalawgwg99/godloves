@@ -39,7 +39,8 @@
   <script>window.react = window.React;</script>
 
   <!-- Lucide React Icons -->
-  <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+  <!-- lucide-react 已移除 UMD 構建（@latest 會 404），釘住最後有 UMD 的 0.525.0；升級前勿改回 latest -->
+  <script src="https://unpkg.com/lucide-react@0.525.0/dist/umd/lucide-react.js"></script>
 
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
