@@ -17,8 +17,8 @@
 import { pickVerseForMood, violatesTaboo, REPENTANCE_VERSE, DEDICATION_VERSE } from './buddhist-verses.js';
 
 const OR_MODELS = [
-'nvidia/nemotron-3.5-lightning:free',
 'nvidia/nemotron-3-super-120b-a12b:free',
+'nvidia/nemotron-3.5-lightning:free',
 ];
 const OR_API = 'https://openrouter.ai/api/v1/chat/completions';
 const PL_API = 'https://text.pollinations.ai/openai';

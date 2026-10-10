@@ -49,6 +49,33 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
+    /* 🪷 信仰主題系統：data-faith 驅動 */
+    :root {
+      --faith-accent: #f59e0b;
+      --faith-accent-rgb: 245, 158, 11;
+      --faith-accent-light: #fbbf24;
+      --faith-accent-dark: #d97706;
+    }
+    [data-faith="buddhist"] {
+      --faith-accent: #f0a6c0;
+      --faith-accent-rgb: 240, 166, 192;
+      --faith-accent-light: #f9c6d8;
+      --faith-accent-dark: #d97a9e;
+    }
+    /* 佛教：amber 系全部轉蓮粉 */
+    [data-faith="buddhist"] .text-amber-500 { color: #f0a6c0 !important; }
+    [data-faith="buddhist"] .text-amber-400 { color: #f9c6d8 !important; }
+    [data-faith="buddhist"] .text-amber-600 { color: #d97a9e !important; }
+    [data-faith="buddhist"] .bg-amber-500 { background-color: #f0a6c0 !important; }
+    [data-faith="buddhist"] .bg-amber-600 { background-color: #d97a9e !important; }
+    [data-faith="buddhist"] .border-amber-500 { border-color: #f0a6c0 !important; }
+    [data-faith="buddhist"] .from-amber-600\/10 { --tw-gradient-from: rgb(240 166 192 / 0.1) !important; }
+    [data-faith="buddhist"] .via-amber-900\/5 { --tw-gradient-to: rgb(240 166 192 / 0.05) !important; }
+    /* 佛教：晨霧背景 */
+    [data-faith="buddhist"] .faith-mist {
+      background: radial-gradient(ellipse at 50% 30%, rgba(240,166,192,0.08), transparent 60%),
+                  radial-gradient(ellipse at 30% 70%, rgba(45,212,191,0.05), transparent 50%) !important;
+    }
     * {
       font-family: 'Noto Sans TC', sans-serif;
     }

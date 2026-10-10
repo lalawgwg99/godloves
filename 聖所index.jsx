@@ -362,7 +362,7 @@ const EtherealReveal = ({ text, speed = 40, className, onComplete }) => {
 
 // --- Component: 粒子背景 (星塵效果) ---
 // --- Component: 粒子背景 (星塵/電子海) ---
-const ParticleField = ({ viewState, isPlaying, mode, isDissolving }) => {
+const ParticleField = ({ viewState, isPlaying, mode, isDissolving, faith }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -372,6 +372,7 @@ const ParticleField = ({ viewState, isPlaying, mode, isDissolving }) => {
     let animationId;
     let particles = [];
     let time = 0; // 用於音頻模擬的時間軸
+    const isBuddhist = faith === 'buddhist';
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -384,6 +385,9 @@ const ParticleField = ({ viewState, isPlaying, mode, isDissolving }) => {
     const getParticleColor = (opacity) => {
       if (mode === 'truth') {
         return `rgba(6, 182, 212, ${opacity})`; // Cyan-500
+      }
+      if (isBuddhist) {
+        return `rgba(240, 166, 192, ${opacity})`; // 蓮粉 Lotus Pink
       }
       return `rgba(245, 158, 11, ${opacity})`; // Amber-500
     };
@@ -1332,11 +1336,18 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         <div className="text-center mb-10 md:mb-14 space-y-6">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-amber-500/20 blur-2xl rounded-full animate-pulse-slow"></div>
-            <Flame className="w-12 h-12 text-amber-500 relative z-10 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-breath" />
+            {faith === 'buddhist' ? (
+              <div className="text-5xl relative z-10 animate-breath">🪷</div>
+            ) : (
+              <Flame className="w-12 h-12 text-amber-500 relative z-10 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-breath" />
+            )}
           </div>
           <h1 className="font-serif text-3xl md:text-4xl text-white tracking-[0.2em] leading-relaxed opacity-90">
-            此刻，你的心<br />
-            在哪裡流浪？
+            {faith === 'buddhist' ? (
+              <>{lang === 'en' ? <>Where is your mind<br />right now?</> : <>此刻，你的心<br />在哪裡流浪？</>}</>
+            ) : (
+              <>此刻，你的心<br />在哪裡流浪？</>
+            )}
           </h1>
         </div>
 
@@ -1800,9 +1811,9 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
   // 🎬 MAIN RENDER
   // ================================================================
   return (
-    <div className="relative min-h-screen bg-[#050506] text-stone-200 overflow-hidden font-sans selection:bg-amber-900/30 selection:text-amber-100">
+    <div data-faith={faith || 'christian'} className="relative min-h-screen bg-[#050506] text-stone-200 overflow-hidden font-sans selection:bg-amber-900/30 selection:text-amber-100">
       {/* 粒子背景 (Audio Reactive & Mode Aware) */}
-      <ParticleField viewState={viewState} isPlaying={isPlaying} mode={mode} isDissolving={isDissolving} />
+      <ParticleField viewState={viewState} isPlaying={isPlaying} mode={mode} isDissolving={isDissolving} faith={faith} />
 
       {/* 🌠 流星效果層 */}
       {meteors.map(timestamp => (
