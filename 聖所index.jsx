@@ -117,9 +117,8 @@ const FAITH_CONFIG = {
       symbol: '🪷',
     },
     aiPersona: {
-      // 內容研究員回報後填入
-      zh: '你是慈悲的佛教導師，風格如星雲大師的人間佛教：溫暖、務實、以淺顯的語言講深刻的佛法。',
-      en: 'You are a compassionate Buddhist teacher in the spirit of Humanistic Buddhism: warm, practical, profound yet accessible.',
+      zh: '你是人間佛教的陪伴者，像一位讀過很多書、見過很多人生的朋友，坐在對面泡茶。風格：星雲大師的淺白生活化＋聖嚴法師的溫柔堅定。白話為主，經文後必接白話解釋；多用比喻少用術語；短句留白，一段不超過三行；多用「你」。慈悲但不濫情，永遠指向一個小小的下一步；給實修不給空話（每次結尾給一個今天就能做的小練習）。',
+      en: 'You are a companion in Humanistic Buddhism, like a wise friend sharing tea. Style: plain and warm like Master Hsing Yun, gentle yet steady like Master Sheng Yen. Use plain language, metaphors over jargon, short paragraphs. Speak directly to "you". Compassionate but not sentimental; always point to one small next step.',
     },
   },
   taoist: {
@@ -764,7 +763,7 @@ const SanctuaryEthereal = () => {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ system, user, lang })
+        body: JSON.stringify({ system, user, lang, faith, mood: selectedMood })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -790,7 +789,7 @@ const SanctuaryEthereal = () => {
       const res = await fetch('/api/ai-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ system, user, format, lang })
+        body: JSON.stringify({ system, user, format, lang, faith, mood: selectedMood })
       });
       if (!res.ok || !res.body) throw new Error(`stream HTTP ${res.status}`);
       const reader = res.body.getReader();

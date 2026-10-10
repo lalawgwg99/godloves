@@ -14,6 +14,8 @@
 * 圖片由前端直接打 pollinations.ai 圖床（免 key）。
 */
 
+import { pickVerseForMood, violatesTaboo, REPENTANCE_VERSE, DEDICATION_VERSE } from './buddhist-verses.js';
+
 const OR_MODELS = [
 'nvidia/nemotron-3.5-lightning:free',
 'nvidia/nemotron-3-super-120b-a12b:free',
@@ -64,10 +66,11 @@ function looksSimplified(text) {
 // 清單裡的字在繁體中絕不出現，出現 1 個就是簡體輸出
 return SIMPLIFIED_RE.test(String(text));
 }
-function cleanModelText(raw, isEN) {
+function cleanModelText(raw, isEN, isBuddhist) {
 const text = stripThinking(raw);
 if (!text || looksLikeThinkingLeak(text)) return null;
 if (!isEN && looksSimplified(text)) return null;
+if (isBuddhist && violatesTaboo(text)) return null;
 return text;
 }
 
@@ -79,7 +82,7 @@ return [
 }
 
 // 第一順位：pollinations（單次嘗試，超時 ms）
-async function tryPollinations(sysContent, user, ms, isEN) {
+async function tryPollinations(sysContent, user, ms, isEN, isBuddhist) {
 try {
 const {ok, data} = await fetchJson(PL_API, {
 method: 'POST',
@@ -87,14 +90,14 @@ headers: { 'Content-Type': 'application/json'},
 body: JSON.stringify({ model: 'openai', messages: msgs(sysContent, user), temperature: 0.9}),
 }, ms);
 if (!ok) return null;
-const text = cleanModelText(extractText(data), isEN);
+const text = cleanModelText(extractText(data), isEN, isBuddhist);
 if (text) return { text, model: (data && data.model) || 'pollinations'};
 } catch (e) { /* 超時或斷線 */}
 return null;
 }
 
 // 第二順位：OpenRouter 免費模型（逐個試，各自超時 ms）
-async function tryOpenRouter(apiKey, sysContent, user, msPerModel, timeLeft, isEN) {
+async function tryOpenRouter(apiKey, sysContent, user, msPerModel, timeLeft, isEN, isBuddhist) {
 for (const model of OR_MODELS) {
 if (timeLeft() < 8000) break; // 時間不夠就別再試了
 try {
@@ -114,7 +117,7 @@ max_tokens: 2500,
 }),
 }, Math.min(msPerModel, timeLeft()));
 if (!ok) continue;
-const text = cleanModelText(extractText(data), isEN);
+const text = cleanModelText(extractText(data), isEN, isBuddhist);
 if (text) return { text, model};
 } catch (e) { /* 換下一個模型 */}
 }
@@ -137,7 +140,7 @@ const started = Date.now();
 const timeLeft = () => TOTAL_BUDGET_MS - (Date.now() - started);
 
 try {
-const { system, user, lang} = await request.json();
+const { system, user, lang, faith, mood} = await request.json();
 if (!user || typeof user!== 'string') {
 return new Response(
 JSON.stringify({ error: '缺少 user 訊息'}),
@@ -145,16 +148,28 @@ JSON.stringify({ error: '缺少 user 訊息'}),
 );
 }
 const isEN = lang === 'en';
-const sysContent = (system || (isEN ? 'You are the spiritual companion of Sanctuary.' : '你是聖所 Sanctuary 的靈性陪伴者。')) + (isEN ? GUARD_EN : GUARD_ZH);
+const isBuddhist = faith === 'buddhist';
+let buddhistVerse = null;
+if (isBuddhist && mood) {
+  buddhistVerse = pickVerseForMood(mood);
+}
+let sysContent = (system || (isEN ? 'You are the spiritual companion of Sanctuary.' : '你是聖所 Sanctuary 的靈性陪伴者。')) + (isEN ? GUARD_EN : GUARD_ZH);
+// 佛教：指定經文＋禁忌 guardrail
+if (isBuddhist) {
+  sysContent += '\n【佛教守則】你是人間佛教的陪伴者（星雲大師淺白＋聖嚴法師溫柔堅定）。絕對禁止：斷言因果（業障、冤親債主、前世）、自稱開悟、編造佛經、把佛菩薩當許願機器。用白話、比喻、短句，多用「你」。';
+  if (buddhistVerse) {
+    sysContent += `\n【指定經文】本回合必須引用這段經文原文（不可改寫）：「${buddhistVerse.verse}」——${buddhistVerse.ref}。`;
+  }
+}
 
 // 1. OpenRouter 主攻（健康時 5~10 秒；每模型 25 秒）
 let result = null;
 if (timeLeft() > 8000 && env.OPENROUTER_API_KEY) {
-result = await tryOpenRouter(env.OPENROUTER_API_KEY, sysContent, user, 25000, timeLeft, isEN);
+result = await tryOpenRouter(env.OPENROUTER_API_KEY, sysContent, user, 25000, timeLeft, isEN, isBuddhist);
 }
 // 2. pollinations 備援（長文生成約 20~30 秒，給 35 秒）
 if (!result && timeLeft() > 10000) {
-result = await tryPollinations(sysContent, user, Math.min(35000, timeLeft()), isEN);
+result = await tryPollinations(sysContent, user, Math.min(35000, timeLeft()), isEN, isBuddhist);
 }
 
 if (!result) {

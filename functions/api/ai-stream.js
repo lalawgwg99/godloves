@@ -19,7 +19,8 @@ const OR_MODELS = [
 const OR_API = 'https://openrouter.ai/api/v1/chat/completions';
 const PL_API = 'https://text.pollinations.ai/openai';
 
-const GUARD = '\n全程使用繁體中文（台灣用語）。絕對禁止簡體字：你们→你們、发→發、为→為、让→讓、过→過、时→時、来→來、国→國、学→學、对→對，一律寫繁體。只回傳要求的內容，不要加任何前言後語。';
+const GUARD_ZH = '\n【輸出規範—非常重要】全程使用繁體中文（台灣用語）。絕對禁止簡體字：你们→你們、发→發、为→為、让→讓、过→過、时→時、来→來、国→國、学→學、对→對，一律寫繁體。只回傳要求的內容，不要加任何前言後語。';
+const GUARD_EN = '\n[OUTPUT RULES - VERY IMPORTANT] Respond entirely in English. Do not use Chinese characters. Return only the requested content, no preamble or explanations.';
 
 const SIMPLIFIED_RE = /[们发为让过时来国学对门问经头点电话车无万与专东丝丢两严丽义乌乐乔习书买乱争亲华从仓仪优会传伤伦伟发变实宁审写宽宝寿将尔尘尽层届属岁岂岛岩岭岳岸峡峰岗昼风飞马麦黄黑齐龙龟]/;
 
@@ -38,23 +39,33 @@ if (request.method === 'OPTIONS') {
 return new Response(null, { headers: corsHeaders});
 }
 
-let system = '', user = '', format = 'prayer';
+let system = '', user = '', format = 'prayer', lang = 'zh', faith = 'christian', mood = '';
 try {
 const body = await request.json();
 system = body.system || '';
 user = body.user || '';
 format = body.format || 'prayer';
+lang = body.lang || 'zh';
+faith = body.faith || 'christian';
+mood = body.mood || '';
 } catch (e) {}
+const isEN = lang === 'en';
+const isBuddhist = faith === 'buddhist';
 if (!user) {
 return new Response(sse({ error: '缺少 user 訊息'}), {
 headers: {...corsHeaders, 'Content-Type': 'text/event-stream'},
 });
 }
 
-let sysContent = (system || '你是聖所 Sanctuary 的靈性陪伴者。') + GUARD;
+let sysContent = (system || (isEN ? 'You are the spiritual companion of Sanctuary.' : '你是聖所 Sanctuary 的靈性陪伴者。')) + (isEN ? GUARD_EN : GUARD_ZH);
+if (isBuddhist) {
+sysContent += '\n【佛教守則】你是人間佛教的陪伴者（星雲大師淺白＋聖嚴法師溫柔堅定）。絕對禁止：斷言因果（業障、冤親債主、前世）、自稱開悟、編造佛經、把佛菩薩當許願機器。用白話、比喻、短句，多用「你」。';
+}
 // 祝福用分隔格式，方便前端串流時逐段解析顯示（不用等 JSON 收完）
 if (format === 'blessing') {
-sysContent += '\n【格式要求】不要用 JSON，用以下分隔格式逐段輸出：\nVERSE:（經文內容）\nREF:（出處）\nPART1:（第一段 200-250 字）\nPART2:（第二段 200-250 字）\nPART3:（第三段 150-200 字）\nIMAGE:（圖片提示詞，用英文）';
+sysContent += isEN
+? '\n[FORMAT] Do NOT use JSON. Output in this delimited format:\nVERSE:(verse)\nREF:(reference)\nPART1:(part 1, 200-250 words)\nPART2:(part 2, 200-250 words)\nPART3:(part 3, 150-200 words)\nIMAGE:(image prompt in English)'
+: '\n【格式要求】不要用 JSON，用以下分隔格式逐段輸出：\nVERSE:（經文內容）\nREF:（出處）\nPART1:（第一段 200-250 字）\nPART2:（第二段 200-250 字）\nPART3:（第三段 150-200 字）\nIMAGE:（圖片提示詞，用英文）';
 }
 const messages = [
 { role: 'system', content: sysContent},
