@@ -81,6 +81,69 @@ const FALLBACK_BLESSING = {
   image_prompt: "soft sacred minimalism, warm dawn light, quiet sky, gentle horizon, cinematic lighting"
 };
 
+// --- 信仰之路 (Faith Paths) ---
+// 每條路：經文庫、AI 人格、視覺主題、祈願格式
+// 基督教是完整版，其他信仰逐步開放
+const FAITH_CONFIG = {
+  christian: {
+    id: 'christian',
+    available: true,
+    name: { zh: '十字架之路', en: 'Way of the Cross' },
+    religion: { zh: '基督教', en: 'Christianity' },
+    desc: { zh: '在聖經的話語中得安慰', en: 'Comfort in the Word' },
+    icon: 'Cross',
+    theme: {
+      primary: 'amber',
+      accent: '#f59e0b',
+      bg: 'starry-night',
+      symbol: '✝',
+    },
+    aiPersona: {
+      zh: '你是守望靈魂的聖所主人，筆觸融合 C.S. Lewis 的奇幻神聖感與奧古斯丁《懺悔錄》的深切真摯。',
+      en: 'You are the keeper of Sanctuary, writing with the mythic sacredness of C.S. Lewis and the confessional depth of Augustine.',
+    },
+  },
+  buddhist: {
+    id: 'buddhist',
+    available: true,
+    name: { zh: '蓮花之路', en: 'Way of the Lotus' },
+    religion: { zh: '佛教', en: 'Buddhism' },
+    desc: { zh: '在佛陀的智慧中得平靜', en: 'Peace in the Buddha\u2019s wisdom' },
+    icon: 'Lotus',
+    theme: {
+      primary: 'teal',
+      accent: '#2dd4bf',
+      bg: 'misty-lotus',
+      symbol: '🪷',
+    },
+    aiPersona: {
+      // 內容研究員回報後填入
+      zh: '你是慈悲的佛教導師，風格如星雲大師的人間佛教：溫暖、務實、以淺顯的語言講深刻的佛法。',
+      en: 'You are a compassionate Buddhist teacher in the spirit of Humanistic Buddhism: warm, practical, profound yet accessible.',
+    },
+  },
+  taoist: {
+    id: 'taoist',
+    available: false,
+    name: { zh: '道法之路', en: 'Way of the Dao' },
+    religion: { zh: '道教', en: 'Taoism' },
+    desc: { zh: '即將到來', en: 'Coming soon' },
+    icon: 'YinYang',
+    theme: { primary: 'emerald', accent: '#10b981', bg: 'bamboo-mist', symbol: '☯' },
+    aiPersona: { zh: '', en: '' },
+  },
+  islamic: {
+    id: 'islamic',
+    available: false,
+    name: { zh: '星月之路', en: 'Way of the Crescent' },
+    religion: { zh: '伊斯蘭教', en: 'Islam' },
+    desc: { zh: '即將到來', en: 'Coming soon' },
+    icon: 'Moon',
+    theme: { primary: 'sky', accent: '#0ea5e9', bg: 'desert-night', symbol: '☪' },
+    aiPersona: { zh: '', en: '' },
+  },
+};
+
 // --- 雙語字典 (Bilingual) ---
 const STRINGS = {
   zh: {
@@ -416,6 +479,16 @@ const SanctuaryEthereal = () => {
   // 狀態機：idle -> input -> processing -> result
   const [lang, setLang] = useState(() => localStorage.getItem('sanctuary_lang') || 'zh');
   const t = STRINGS[lang];
+  // 信仰之路：首次進入選擇，記住選擇
+  const [faith, setFaith] = useState(() => localStorage.getItem('sanctuary_faith') || '');
+  const [showFaithSelector, setShowFaithSelector] = useState(() => !localStorage.getItem('sanctuary_faith'));
+  const faithConfig = FAITH_CONFIG[faith] || FAITH_CONFIG.christian;
+  const selectFaith = (fid) => {
+    if (!FAITH_CONFIG[fid].available) return;
+    setFaith(fid);
+    localStorage.setItem('sanctuary_faith', fid);
+    setShowFaithSelector(false);
+  };
   const toggleLang = () => {
     const next = lang === 'zh' ? 'en' : 'zh';
     setLang(next);
@@ -797,7 +870,7 @@ const SanctuaryEthereal = () => {
           systemInstruction: {
             parts: [{
               text: `
-你是守望靈魂的聖所主人，筆觸融合 C.S. Lewis 的奇幻神聖感與奧古斯丁《懺悔錄》的深切真摯。
+${faithConfig.aiPersona[lang] || faithConfig.aiPersona.zh}
 ${safetyGuardrail} 
 ${safetyGuardrail} 
 ${diversityHint}
@@ -1936,6 +2009,48 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
       {/* 浮層 */}
       {showHistory && renderHistory()}
+
+      {/* 🛤️ 信仰之路選擇器 */}
+      {showFaithSelector && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-700">
+          <div className="max-w-2xl w-full text-center">
+            <div className="mb-4 text-4xl">🛤️</div>
+            <h2 className="font-serif text-3xl md:text-4xl text-white/90 mb-3 tracking-wide">
+              {lang === 'en' ? 'Choose Your Path' : '選擇你的信仰之路'}
+            </h2>
+            <p className="text-stone-400 font-serif text-sm md:text-base mb-10 leading-relaxed">
+              {lang === 'en'
+                ? 'Each path leads to the same light, through different wisdom.'
+                : '條條之路通向同一道光，只是智慧的形式不同。'}
+            </p>
+            <div className="grid grid-cols-2 gap-4 md:gap-6">
+              {Object.values(FAITH_CONFIG).map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => selectFaith(f.id)}
+                  disabled={!f.available}
+                  className={`group p-6 md:p-8 rounded-2xl border backdrop-blur-md transition-all duration-500 ${
+                    f.available
+                      ? 'border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-amber-500/40 hover:-translate-y-1 cursor-pointer'
+                      : 'border-white/5 bg-white/[0.01] opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="text-4xl md:text-5xl mb-4">{f.theme.symbol}</div>
+                  <div className="font-serif text-lg md:text-xl text-white/90 mb-1">
+                    {lang === 'en' ? f.name.en : f.name.zh}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-[0.3em] text-stone-500 mb-2">
+                    {lang === 'en' ? f.religion.en : f.religion.zh}
+                  </div>
+                  <div className="text-xs text-stone-400 font-serif">
+                    {lang === 'en' ? f.desc.en : f.desc.zh}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div >
   );
