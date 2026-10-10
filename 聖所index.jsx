@@ -2048,6 +2048,12 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => selectFaith('christian')}
+              className="mt-8 text-xs text-stone-600 hover:text-stone-400 underline underline-offset-4 transition-colors"
+            >
+              {lang === 'en' ? 'Enter as it comes →' : '隨緣進入 →'}
+            </button>
           </div>
         </div>
       )}
