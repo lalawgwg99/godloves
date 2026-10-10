@@ -64,7 +64,7 @@ function looksSimplified(text) {
 // 清單裡的字在繁體中絕不出現，出現 1 個就是簡體輸出
 return SIMPLIFIED_RE.test(String(text));
 }
-function cleanModelText(raw) {
+function cleanModelText(raw, isEN) {
 const text = stripThinking(raw);
 if (!text || looksLikeThinkingLeak(text)) return null;
 if (!isEN && looksSimplified(text)) return null;
@@ -79,7 +79,7 @@ return [
 }
 
 // 第一順位：pollinations（單次嘗試，超時 ms）
-async function tryPollinations(sysContent, user, ms) {
+async function tryPollinations(sysContent, user, ms, isEN) {
 try {
 const {ok, data} = await fetchJson(PL_API, {
 method: 'POST',
@@ -87,14 +87,14 @@ headers: { 'Content-Type': 'application/json'},
 body: JSON.stringify({ model: 'openai', messages: msgs(sysContent, user), temperature: 0.9}),
 }, ms);
 if (!ok) return null;
-const text = cleanModelText(extractText(data));
+const text = cleanModelText(extractText(data), isEN);
 if (text) return { text, model: (data && data.model) || 'pollinations'};
 } catch (e) { /* 超時或斷線 */}
 return null;
 }
 
 // 第二順位：OpenRouter 免費模型（逐個試，各自超時 ms）
-async function tryOpenRouter(apiKey, sysContent, user, msPerModel, timeLeft) {
+async function tryOpenRouter(apiKey, sysContent, user, msPerModel, timeLeft, isEN) {
 for (const model of OR_MODELS) {
 if (timeLeft() < 8000) break; // 時間不夠就別再試了
 try {
@@ -114,7 +114,7 @@ max_tokens: 2500,
 }),
 }, Math.min(msPerModel, timeLeft()));
 if (!ok) continue;
-const text = cleanModelText(extractText(data));
+const text = cleanModelText(extractText(data), isEN);
 if (text) return { text, model};
 } catch (e) { /* 換下一個模型 */}
 }
@@ -150,11 +150,11 @@ const sysContent = (system || (isEN ? 'You are the spiritual companion of Sanctu
 // 1. OpenRouter 主攻（健康時 5~10 秒；每模型 25 秒）
 let result = null;
 if (timeLeft() > 8000 && env.OPENROUTER_API_KEY) {
-result = await tryOpenRouter(env.OPENROUTER_API_KEY, sysContent, user, 25000, timeLeft);
+result = await tryOpenRouter(env.OPENROUTER_API_KEY, sysContent, user, 25000, timeLeft, isEN);
 }
 // 2. pollinations 備援（長文生成約 20~30 秒，給 35 秒）
 if (!result && timeLeft() > 10000) {
-result = await tryPollinations(sysContent, user, Math.min(35000, timeLeft()));
+result = await tryPollinations(sysContent, user, Math.min(35000, timeLeft()), isEN);
 }
 
 if (!result) {
