@@ -205,6 +205,42 @@ const STRINGS = {
   }
 };
 
+// --- 🪷 信仰 UI 文案覆寫：同一個 key，蓮花之路用自己的語言 ---
+const FAITH_UI = {
+  buddhist: {
+    zh: {
+      grace: '慈悲',
+      graceDesc: '溫柔陪伴',
+      truth: '智慧',
+      truthDesc: '觀照內心',
+      promise: '經句的啟示',
+      guidance: '心靈的指引',
+      finalBlessing: '安心的祝福',
+      prayer: '專屬祈願',
+      generatePrayer: '生成祈願',
+      regeneratePrayer: '重新生成祈願',
+      praying: '祈願中...',
+    },
+    en: {
+      grace: 'Compassion',
+      graceDesc: 'Gentle companionship',
+      truth: 'Wisdom',
+      truthDesc: 'Inner reflection',
+      promise: 'Revelation in Verse',
+      guidance: 'Guidance for the Heart',
+      finalBlessing: 'Blessing of Peace',
+      prayer: 'Personal Aspiration',
+      generatePrayer: 'Generate Aspiration',
+      regeneratePrayer: 'Regenerate Aspiration',
+      praying: 'Aspiring...',
+    },
+  },
+};
+// 蓮花之路儀式獨白（processing 階段輪播）
+const FAITH_RITUAL_MESSAGES = {
+  buddhist: ["正在傾聽...", "觀照呼吸...", "放下執著...", "尋求平靜...", "領受平靜..."],
+};
+
 // --- Custom Hook: 環境音效 ---
 const useAmbientSound = () => {
   const [isMuted, setIsMuted] = useState(true);
@@ -481,9 +517,10 @@ const ParticleField = ({ viewState, isPlaying, mode, isDissolving, faith }) => {
 const SanctuaryEthereal = () => {
   // 狀態機：idle -> input -> processing -> result
   const [lang, setLang] = useState(() => localStorage.getItem('sanctuary_lang') || 'zh');
-  const t = STRINGS[lang];
   // 信仰之路：首次進入選擇，記住選擇
   const [faith, setFaith] = useState(() => localStorage.getItem('sanctuary_faith') || '');
+  // 🪷 信仰文案覆寫：蓮花之路用自己的語言（模式名、按鈕、儀式文案）
+  const t = { ...STRINGS[lang], ...((FAITH_UI[faith] && FAITH_UI[faith][lang]) || {}) };
   const [showFaithSelector, setShowFaithSelector] = useState(() => !localStorage.getItem('sanctuary_faith'));
   const faithConfig = FAITH_CONFIG[faith] || FAITH_CONFIG.christian;
   const selectFaith = (fid) => {
@@ -560,7 +597,7 @@ const SanctuaryEthereal = () => {
   useEffect(() => {
     if (viewState !== 'processing') return;
 
-    const messages = ["正在傾聽...", "感知重量...", "連接深淵...", "尋求應許...", "領受光..."];
+    const messages = FAITH_RITUAL_MESSAGES[faith] || ["正在傾聽...", "感知重量...", "連接深淵...", "尋求應許...", "領受光..."];
     let index = 0;
     setStatusText(messages[0]);
 
@@ -1312,7 +1349,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
     <div className="flex flex-col items-center justify-center min-h-screen text-center px-6 pt-28 md:pt-0 animate-in fade-in duration-1000">
 
       {/* 背景：神聖之光 (Divine Light) */}
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150vw] h-[80vh] bg-gradient-radial from-amber-600/10 via-amber-900/5 to-transparent blur-3xl pointer-events-none animate-[pulse_8s_ease-in-out_infinite]" />
+      <div className="faith-mist absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150vw] h-[80vh] bg-gradient-radial from-amber-600/10 via-amber-900/5 to-transparent blur-3xl pointer-events-none animate-[pulse_8s_ease-in-out_infinite]" />
 
       {/* 核心問題區域 */}
       <div className="relative z-10 flex flex-col items-center">
@@ -1443,10 +1480,10 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             <span className="flex flex-col items-center gap-0.5">
               <span className="flex items-center gap-3">
                 <Wind className="w-5 h-5 opacity-70" />
-                <span>{mode === 'truth' ? '凝視深淵' : '交付靈魂'}</span>
+                <span>{faith === 'buddhist' ? (mode === 'truth' ? '觀照自心' : '交付心事') : (mode === 'truth' ? '凝視深淵' : '交付靈魂')}</span>
               </span>
               <span className="text-[10px] opacity-40 tracking-widest font-sans uppercase">
-                {mode === 'truth' ? '長按凝視' : '長按注入'}
+                {faith === 'buddhist' ? (mode === 'truth' ? '長按觀照' : '長按交付') : (mode === 'truth' ? '長按凝視' : '長按注入')}
               </span>
             </span>
           </MainAction>
@@ -1985,12 +2022,17 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                     <TheLogic className="text-amber-500/80 tracking-[0.4em] font-bold uppercase mb-8 border-none">⎯ 領受指引 ⎯</TheLogic>
 
                     <div className="grid grid-cols-1 gap-8 w-full">
-                      {[
+                      {(faith === 'buddhist' ? [
                         { step: "01", title: "誠實觀照", detail: "在首頁選擇此刻最真實的心境，不需偽裝堅強。" },
-                        { step: "02", title: "全然交付", detail: "在信箋中寫下你的重負，让 AI 將其轉化為應許。" },
+                        { step: "02", title: "全然交付", detail: "在信箋中寫下你的心事，讓 AI 將其化為佛語的啟示。" },
+                        { step: "03", title: "靜心領受", detail: "待雲霧散開，收下專屬於你的經句、影像與祈願。" },
+                        { step: "04", title: "化作流星", detail: "點擊收藏或分享，讓這份平靜在雲端持續共鳴。" }
+                      ] : [
+                        { step: "01", title: "誠實觀照", detail: "在首頁選擇此刻最真實的心境，不需偽裝堅強。" },
+                        { step: "02", title: "全然交付", detail: "在信箋中寫下你的重負，讓 AI 將其轉化為應許。" },
                         { step: "03", title: "靜心領受", detail: "待光芒匯聚，收下專屬於你的經文、影像與禱告。" },
-                        { step: "04", title: "化作流星", detail: "点击收藏或分享，讓這份恩典在雲端持續共鳴。" }
-                      ].map(item => (
+                        { step: "04", title: "化作流星", detail: "點擊收藏或分享，讓這份恩典在雲端持續共鳴。" }
+                      ]).map(item => (
                         <div key={item.step} className="flex items-start gap-6 group hover:translate-x-1 transition-transform">
                           <span className="text-amber-500/40 text-2xl font-mono leading-none">{item.step}</span>
                           <div>
@@ -2005,7 +2047,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
                   <div className="pt-4 text-center">
                     <TheWhisper className="text-amber-500/50 text-sm tracking-widest animate-pulse">
-                      "願你在這片光中，尋得永恆的安息。"
+                      {faith === 'buddhist' ? '"願你在這片雲霧中，尋得內心的安定。"' : '"願你在這片光中，尋得永恆的安息。"'}
                     </TheWhisper>
                   </div>
                 </div>
