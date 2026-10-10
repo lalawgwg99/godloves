@@ -24,7 +24,8 @@ const PL_API = 'https://text.pollinations.ai/openai';
 // 後端總時限：超過就收手，前端會顯示備援文案
 const TOTAL_BUDGET_MS = 75000;
 
-const GUARD = '\n【輸出規範—非常重要】全程使用繁體中文（台灣用語）。絕對禁止簡體字：你们→你們、发→發、为→為、让→讓、过→過、时→時、来→來、国→國、学→學、对→對，一律寫繁體。只回傳要求的內容，不要加任何前言後語。';
+const GUARD_ZH = '\n【輸出規範—非常重要】全程使用繁體中文（台灣用語）。絕對禁止簡體字：你们→你們、发→發、为→為、让→讓、过→過、时→時、来→來、国→國、学→學、对→對，一律寫繁體。只回傳要求的內容，不要加任何前言後語。';
+const GUARD_EN = '\n[OUTPUT RULES - VERY IMPORTANT] Respond entirely in English. Do not use Chinese characters. Return only the requested content, no preamble or explanations.';
 
 // 超時覆蓋「等 headers + 讀 body」全程：abort 會中斷 r.json() 的 body 讀取，
 // 避免 response 卡在半路上無限等待（之前 r.json 在保護之外是 bug）。
@@ -66,7 +67,7 @@ return SIMPLIFIED_RE.test(String(text));
 function cleanModelText(raw) {
 const text = stripThinking(raw);
 if (!text || looksLikeThinkingLeak(text)) return null;
-if (looksSimplified(text)) return null;
+if (!isEN && looksSimplified(text)) return null;
 return text;
 }
 
@@ -136,14 +137,15 @@ const started = Date.now();
 const timeLeft = () => TOTAL_BUDGET_MS - (Date.now() - started);
 
 try {
-const { system, user} = await request.json();
+const { system, user, lang} = await request.json();
 if (!user || typeof user!== 'string') {
 return new Response(
 JSON.stringify({ error: '缺少 user 訊息'}),
 { status: 400, headers: {...corsHeaders, 'Content-Type': 'application/json'}}
 );
 }
-const sysContent = (system || '你是聖所 Sanctuary 的靈性陪伴者。') + GUARD;
+const isEN = lang === 'en';
+const sysContent = (system || (isEN ? 'You are the spiritual companion of Sanctuary.' : '你是聖所 Sanctuary 的靈性陪伴者。')) + (isEN ? GUARD_EN : GUARD_ZH);
 
 // 1. OpenRouter 主攻（健康時 5~10 秒；每模型 25 秒）
 let result = null;

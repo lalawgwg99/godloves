@@ -140,7 +140,7 @@ clearTimeout(timer);
 const d = await r.json();
 const text = d && d.choices && d.choices[0] && d.choices[0].message
 ? d.choices[0].message.content: '';
-if (r.ok && text &&!SIMPLIFIED_RE.test(text)) {
+if (r.ok && text && (isEN ||!SIMPLIFIED_RE.test(text))) {
 fullText = text;
 // 模擬逐字推送，讓前端體驗一致
 const chars = text.match(/[\s\S]{1,8}/g) || [];

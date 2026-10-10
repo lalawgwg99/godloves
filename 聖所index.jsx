@@ -38,7 +38,8 @@ const {
   Menu,
   Settings,
   HelpCircle,
-  ChevronRight
+  ChevronRight,
+  Globe
 } = window.LucideReact;
 
 /* ================= 全域配置 ================= */
@@ -58,16 +59,16 @@ const STYLE_ANCHOR = "style: soft sacred minimalism, chiaroscuro lighting, conte
 
 // 🌈 情緒關鍵字（漂浮 Mood Pills）
 const MOOD_PILLS = [
-  { label: '感到沉重', icon: CloudRain, color: 'text-slate-400', glow: 'bg-slate-500', shadow: 'shadow-slate-500' },
-  { label: '迷失方向', icon: Compass, color: 'text-cyan-400', glow: 'bg-cyan-500', shadow: 'shadow-cyan-500' },
-  { label: '需要勇氣', icon: Shield, color: 'text-amber-600', glow: 'bg-amber-600', shadow: 'shadow-amber-600' },
-  { label: '尋求安慰', icon: Heart, color: 'text-rose-400', glow: 'bg-rose-500', shadow: 'shadow-rose-500' },
-  { label: '渴望平靜', icon: Feather, color: 'text-teal-300', glow: 'bg-teal-500', shadow: 'shadow-teal-500' },
-  { label: '想要感恩', icon: Sun, color: 'text-yellow-300', glow: 'bg-yellow-500', shadow: 'shadow-yellow-500' },
-  { label: '關係修復', icon: Users, color: 'text-pink-300', glow: 'bg-pink-500', shadow: 'shadow-pink-500' },
-  { label: '身心疲憊', icon: Moon, color: 'text-indigo-300', glow: 'bg-indigo-500', shadow: 'shadow-indigo-500' },
-  { label: '等候途中', icon: Hourglass, color: 'text-stone-400', glow: 'bg-stone-500', shadow: 'shadow-stone-500' },
-  { label: '重新開始', icon: Sprout, color: 'text-emerald-400', glow: 'bg-emerald-500', shadow: 'shadow-emerald-500' }
+  { label: '感到沉重', en: 'Feeling Heavy', icon: CloudRain, color: 'text-slate-400', glow: 'bg-slate-500', shadow: 'shadow-slate-500' },
+  { label: '迷失方向', en: 'Lost', icon: Compass, color: 'text-cyan-400', glow: 'bg-cyan-500', shadow: 'shadow-cyan-500' },
+  { label: '需要勇氣', en: 'Need Courage', icon: Shield, color: 'text-amber-600', glow: 'bg-amber-600', shadow: 'shadow-amber-600' },
+  { label: '尋求安慰', en: 'Seeking Comfort', icon: Heart, color: 'text-rose-400', glow: 'bg-rose-500', shadow: 'shadow-rose-500' },
+  { label: '渴望平靜', en: 'Craving Peace', icon: Feather, color: 'text-teal-300', glow: 'bg-teal-500', shadow: 'shadow-teal-500' },
+  { label: '想要感恩', en: 'Grateful', icon: Sun, color: 'text-yellow-300', glow: 'bg-yellow-500', shadow: 'shadow-yellow-500' },
+  { label: '關係修復', en: 'Healing Relationships', icon: Users, color: 'text-pink-300', glow: 'bg-pink-500', shadow: 'shadow-pink-500' },
+  { label: '身心疲憊', en: 'Weary', icon: Moon, color: 'text-indigo-300', glow: 'bg-indigo-500', shadow: 'shadow-indigo-500' },
+  { label: '等候途中', en: 'Waiting', icon: Hourglass, color: 'text-stone-400', glow: 'bg-stone-500', shadow: 'shadow-stone-500' },
+  { label: '重新開始', en: 'New Beginning', icon: Sprout, color: 'text-emerald-400', glow: 'bg-emerald-500', shadow: 'shadow-emerald-500' }
 ];
 
 // 🛡️ 恩典資料庫 (Fallback)
@@ -78,6 +79,68 @@ const FALLBACK_BLESSING = {
   part2: "你不需要現在就變得堅強。你能夠停下來，被我抱著，這本身就是被允許的。放下那些不屬於你的重擔吧。",
   part3: "今天，請為自己預留五分鐘，深深呼吸，讓心慢慢安靜下來，領受這份無條件的平安。",
   image_prompt: "soft sacred minimalism, warm dawn light, quiet sky, gentle horizon, cinematic lighting"
+};
+
+// --- 雙語字典 (Bilingual) ---
+const STRINGS = {
+  zh: {
+    appName: '聖所',
+    appSubtitle: 'Sanctuary',
+    grace: '恩典',
+    truth: '真理',
+    graceDesc: '溫柔安慰',
+    truthDesc: '直面真相',
+    howAreYou: '此刻的你，感覺如何？',
+    selectMood: '選擇你的心情',
+    moods: ['感到沉重', '感到焦慮', '感到孤單', '感到迷惘', '感到疲憊', '感到憤怒', '感到悲傷', '感到空虛', '感到感恩', '感到平靜'],
+    storyPlaceholder: '把心事寫下來，或直接領受祝福…',
+    receiveBlessing: '直接領受祝福',
+    listening: '正在傾聽...',
+    sensing: '感知重量...',
+    connecting: '連接深淵...',
+    seeking: '尋求應許...',
+    receivingLight: '領受光...',
+    promise: '光中的應許',
+    guidance: '靈魂的指引',
+    finalBlessing: '最終的祝福',
+    prayer: '專屬禱告',
+    generatePrayer: '生成禱告',
+    regeneratePrayer: '重新生成禱告',
+    praying: '禱告中...',
+    history: '生命之卷',
+    empty: '空',
+    holdToReceive: '長按領受',
+    aiLanguage: 'AI 語言',
+  },
+  en: {
+    appName: 'Sanctuary',
+    appSubtitle: '聖所',
+    grace: 'Grace',
+    truth: 'Truth',
+    graceDesc: 'Gentle comfort',
+    truthDesc: 'Face the truth',
+    howAreYou: 'How are you feeling right now?',
+    selectMood: 'Select your mood',
+    moods: ['Heavy', 'Anxious', 'Lonely', 'Lost', 'Weary', 'Angry', 'Sad', 'Empty', 'Grateful', 'Peaceful'],
+    storyPlaceholder: 'Write your heart, or receive blessing directly…',
+    receiveBlessing: 'Receive Blessing',
+    listening: 'Listening...',
+    sensing: 'Sensing the weight...',
+    connecting: 'Connecting to the deep...',
+    seeking: 'Seeking promise...',
+    receivingLight: 'Receiving light...',
+    promise: 'Promise in Light',
+    guidance: 'Guidance for the Soul',
+    finalBlessing: 'Final Blessing',
+    prayer: 'Personal Prayer',
+    generatePrayer: 'Generate Prayer',
+    regeneratePrayer: 'Regenerate Prayer',
+    praying: 'Praying...',
+    history: 'Book of Life',
+    empty: 'Empty',
+    holdToReceive: 'Hold to receive',
+    aiLanguage: 'AI Language',
+  }
 };
 
 // --- Custom Hook: 環境音效 ---
@@ -351,6 +414,13 @@ const ParticleField = ({ viewState, isPlaying, mode, isDissolving }) => {
 // --- Main Component ---
 const SanctuaryEthereal = () => {
   // 狀態機：idle -> input -> processing -> result
+  const [lang, setLang] = useState(() => localStorage.getItem('sanctuary_lang') || 'zh');
+  const t = STRINGS[lang];
+  const toggleLang = () => {
+    const next = lang === 'zh' ? 'en' : 'zh';
+    setLang(next);
+    localStorage.setItem('sanctuary_lang', next);
+  };
   const [mode, setMode] = useState('grace'); // 'grace' (恩典) | 'truth' (真理)
   const [viewState, setViewState] = useState('idle');
   const [selectedMood, setSelectedMood] = useState('');
@@ -581,7 +651,9 @@ const SanctuaryEthereal = () => {
 
   // 經後端 /api/ai 呼叫（免 key）；後端若被限流，改由瀏覽器直連 pollinations（不同 IP 額度）
   const callAIDirect = async (system, user) => {
-    const guard = '\n【輸出規範】全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
+    const guard = lang === 'en'
+      ? '\n[OUTPUT RULES] Respond entirely in English. No Chinese characters. Return only the requested content.'
+      : '\n【輸出規範】全程使用繁體中文（台灣用語），絕對不可出現簡體字。只回傳要求的內容，不要加任何前言後語。';
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), 35000);
     let res, data;
@@ -619,7 +691,7 @@ const SanctuaryEthereal = () => {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ system, user })
+        body: JSON.stringify({ system, user, lang })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -645,7 +717,7 @@ const SanctuaryEthereal = () => {
       const res = await fetch('/api/ai-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ system, user, format })
+        body: JSON.stringify({ system, user, format, lang })
       });
       if (!res.ok || !res.body) throw new Error(`stream HTTP ${res.status}`);
       const reader = res.body.getReader();
@@ -1173,14 +1245,14 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             className={`relative z-10 px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-500 ${mode === 'grace' ? 'text-amber-200' : 'text-stone-500 hover:text-stone-300'}`}
           >
             <Feather className="w-4 h-4" />
-            <span className="text-xs tracking-widest font-serif">恩典</span>
+            <span className="text-xs tracking-widest font-serif">{t.grace}</span>
           </button>
           <button
             onClick={() => setMode('truth')}
             className={`relative z-10 px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-500 ${mode === 'truth' ? 'text-amber-200' : 'text-stone-500 hover:text-stone-300'}`}
           >
             <Hammer className="w-4 h-4" />
-            <span className="text-xs tracking-widest font-serif">真理</span>
+            <span className="text-xs tracking-widest font-serif">{t.truth}</span>
           </button>
         </div>
 
@@ -1198,7 +1270,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
         {/* 藥丸網格 */}
         <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-3 md:gap-4 w-full">
-          {MOOD_PILLS.map(({ label, icon: Icon, color }) => (
+          {MOOD_PILLS.map(({ label, en, icon: Icon, color }) => (
             <button
               key={label}
               onClick={() => {
@@ -1209,7 +1281,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
               className="group px-4 py-3 md:px-6 md:py-4 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-sm text-stone-300 font-serif text-sm transition-all duration-500 flex items-center justify-center gap-2 md:gap-3 hover:bg-white/10 hover:border-amber-500/50 hover:text-white hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:-translate-y-1"
             >
               <Icon className={`w-3.5 h-3.5 md:w-4 md:h-4 opacity-60 group-hover:opacity-100 group-hover:${color} transition-all duration-500`} />
-              <span className="tracking-widest">{label}</span>
+              <span className="tracking-widest">{lang === 'en' ? en : label}</span>
             </button>
           ))}
         </div>
@@ -1265,7 +1337,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
                 setCharCount(e.target.value.length);
               }
             }}
-            placeholder="在這裡輕聲說⋯⋯&#10;&#10;你可以寫下任何事，或什麼都不寫。"
+            placeholder={t.storyPlaceholder}
             className="relative w-full bg-black/40 backdrop-blur-md text-center text-xl md:text-2xl text-white/90 font-serif placeholder:text-stone-500 focus:placeholder:text-stone-600 outline-none resize-none min-h-[260px] leading-relaxed border border-white/10 rounded-2xl p-8 focus:border-amber-500/40 focus:bg-black/60 transition-all duration-500 shadow-inner"
           />
         </div>
@@ -1293,7 +1365,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
 
         {/* 跳過文字直接進入 */}
         <p className="text-center mt-12 text-stone-600 text-xs">
-          不想寫也沒關係，<button onClick={handleListen} className="text-amber-600/70 hover:text-amber-500 underline underline-offset-4">直接領受祝福</button>
+          {lang === 'en' ? 'It\u2019s okay to stay silent, ' : '不想寫也沒關係，'}<button onClick={handleListen} className="text-amber-600/70 hover:text-amber-500 underline underline-offset-4">{t.receiveBlessing}</button>
         </p>
       </div>
     </div>
@@ -1445,7 +1517,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
             <div className="space-y-16">
               <div className="group">
                 <div className="flex items-center gap-4 mb-5 opacity-80">
-                  <TheLogic className="text-amber-500/70 border-none">光中的應許</TheLogic>
+                  <TheLogic className="text-amber-500/70 border-none">{t.promise}</TheLogic>
                   <div className="h-px w-12 bg-amber-500/30" />
                 </div>
                 <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
@@ -1456,7 +1528,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
               {showPart2 && (
                 <div className="group animate-in fade-in duration-700">
                   <div className="flex items-center gap-4 mb-5 opacity-80">
-                    <TheLogic className="text-amber-500/70 border-none">靈魂的指引</TheLogic>
+                    <TheLogic className="text-amber-500/70 border-none">{t.guidance}</TheLogic>
                     <div className="h-px w-12 bg-amber-500/30" />
                   </div>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
@@ -1468,7 +1540,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
               {showPart3 && (
                 <div className="group animate-in fade-in duration-700">
                   <div className="flex items-center gap-4 mb-5 opacity-80">
-                    <TheLogic className="text-amber-500/70 border-none">最終的祝福</TheLogic>
+                    <TheLogic className="text-amber-500/70 border-none">{t.finalBlessing}</TheLogic>
                     <div className="h-px w-12 bg-amber-500/30" />
                   </div>
                   <p className="text-white/85 font-serif text-lg md:text-xl leading-loose font-light">
@@ -1483,7 +1555,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
           {/* 禱告區 */}
           {prayer && (
             <div className="p-8 bg-amber-900/10 rounded-2xl border border-amber-500/10 animate-in zoom-in duration-500">
-              <h5 className="font-serif text-amber-600/80 font-bold mb-5 text-center text-[10px] tracking-[0.3em] uppercase">專屬禱告</h5>
+              <h5 className="font-serif text-amber-600/80 font-bold mb-5 text-center text-[10px] tracking-[0.3em] uppercase">{t.prayer}</h5>
               <p className="text-white/70 font-light leading-loose font-serif text-center italic">
                 「<EtherealReveal key={prayer} text={prayer} speed={25} />」
               </p>
@@ -1523,7 +1595,7 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
               <div className="p-5 rounded-full border border-amber-500 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] group-hover:scale-105 transition-transform duration-300">
                 {isPrayerLoading ? <Loader2 className="w-5 h-5 animate-spin text-black" /> : <Heart className="w-5 h-5 text-black fill-black" />}
               </div>
-              <span className="font-bold">禱告</span>
+              <span className="font-bold">{isPrayerLoading ? t.praying : t.generatePrayer}</span>
             </button>
 
             {/* 下載/收藏 (右側) */}
@@ -1763,13 +1835,21 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
               <div className="p-2 rounded-full border border-white/5 bg-white/5 backdrop-blur-md group-hover:border-white/20">
                 <X className="w-4 h-4" />
               </div>
-              <span className="text-[9px] uppercase tracking-[0.3em] opacity-0 group-hover:opacity-60 -translate-x-2 group-hover:translate-x-0 transition-all">離開聖所</span>
+              <span className="text-[9px] uppercase tracking-[0.3em] opacity-0 group-hover:opacity-60 -translate-x-2 group-hover:translate-x-0 transition-all">{lang === 'en' ? 'Leave' : '離開聖所'}</span>
             </button>
           )}
         </div>
 
-        {/* Right: Unified Portal Trigger */}
-        <div className="pointer-events-auto">
+        {/* Right: Language Toggle + Unified Portal Trigger */}
+        <div className="pointer-events-auto flex items-center gap-2">
+          <button
+            onClick={toggleLang}
+            className="h-10 px-4 rounded-full bg-black/20 border border-white/5 backdrop-blur-md flex items-center gap-2 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all group shadow-lg"
+            title={t.aiLanguage}
+          >
+            <Globe className="w-4 h-4 text-stone-500 group-hover:text-amber-500 transition-colors" />
+            <span className="text-[10px] text-stone-400 group-hover:text-amber-500 font-mono tracking-wider">{lang === 'zh' ? 'EN' : '中文'}</span>
+          </button>
           <button
             onClick={() => setShowPortal(true)}
             className="h-10 px-4 rounded-full bg-black/20 border border-white/5 backdrop-blur-md flex items-center gap-3 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all group shadow-lg"
