@@ -975,12 +975,18 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
           }
         }
       );
-      // 串流完成，最終解析（分隔格式優先，JSON 備援）
+      // 串流完成，最終解析（分隔格式優先，JSON 備援，否則用預設祝福）
       const finalParsed = parseBlessingStream(rawWisdom);
       if (finalParsed.verse) {
         wisdomResult = finalParsed;
       } else {
-        wisdomResult = JSON.parse(cleanJsonString(rawWisdom));
+        try {
+          wisdomResult = JSON.parse(cleanJsonString(rawWisdom));
+        } catch (je) {
+          // 模型沒照格式輸出，用預設祝福文案（至少有東西看）
+          console.warn("Blessing parse failed, using fallback:", je.message);
+          wisdomResult = FALLBACK_BLESSING;
+        }
       }
     } catch (e) {
       console.error("AI Connection Failed:", e);
