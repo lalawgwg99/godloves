@@ -638,6 +638,50 @@ const SanctuaryEthereal = () => {
     }
   };
 
+  // 串流版：字一個一個回來，onToken 每收到一個片段就被呼叫。
+  // 回傳完整文字（供解析）。失敗時自動退回非串流 callAI。
+  const callAIStream = async (system, user, format, onToken) => {
+    try {
+      const res = await fetch('/api/ai-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system, user, format })
+      });
+      if (!res.ok || !res.body) throw new Error(`stream HTTP ${res.status}`);
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      let full = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t.startsWith('data: ')) continue;
+          const payload = t.slice(6);
+          try {
+            const d = JSON.parse(payload);
+            if (d.token) { full += d.token; if (onToken) onToken(d.token, full); }
+            else if (d.error) throw new Error(d.error);
+            // d.done 結束
+          } catch (e) {
+            if (e.message && e.message !== '聖域暫時靜默，請稍後再試。') throw e;
+            if (d && d.error) throw new Error(d.error);
+          }
+        }
+      }
+      try { reader.releaseLock(); } catch (e) {}
+      if (!full) throw new Error('stream empty');
+      return full;
+    } catch (e) {
+      console.warn('stream failed, fallback to callAI:', e.message);
+      return await callAI(system, user);
+    }
+  };
+
   // 核心邏輯：靜心傾聽
   const handleListen = async () => {
     setViewState('processing');
@@ -745,11 +789,51 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         };
       }
 
-      const rawWisdom = await callAI(
-        wisdomBody.systemInstruction.parts[0].text,
-        wisdomBody.contents[0].parts[0].text
+      // 串流：字一個一個回來，逐段解析顯示（不用等全部收完）
+      const parseBlessingStream = (text) => {
+        const get = (key) => {
+          const m = text.match(new RegExp(key + ':([\\s\\S]*?)(?=VERSE:|REF:|PART1:|PART2:|PART3:|IMAGE:|$)'));
+          return m ? m[1].trim() : '';
+        };
+        return {
+          verse: get('VERSE'),
+          reference: get('REF'),
+          part1: get('PART1'),
+          part2: get('PART2'),
+          part3: get('PART3'),
+          image_prompt: get('IMAGE'),
+        };
+      };
+      // 串流時不要 JSON 指令（後端會加分隔格式指令）
+      const streamSystem = wisdomBody.systemInstruction.parts[0].text
+        .replace(/請輸出 JSON[^}]*\}/s, '')
+        .replace(/請務必輸出 JSON 格式[^}]*\}/s, '');
+      let streamedText = '';
+      const rawWisdom = await callAIStream(
+        streamSystem,
+        wisdomBody.contents[0].parts[0].text,
+        'blessing',
+        (token, full) => {
+          streamedText = full;
+          const partial = parseBlessingStream(full);
+          // 有經文就先顯示，part 逐段出現
+          if (partial.verse && !wisdomResult.verse) {
+            wisdomResult = { ...FALLBACK_BLESSING, ...partial };
+            setResult({ ...wisdomResult });
+            setViewState('result');
+          } else if (partial.part1 && wisdomResult.part1 !== partial.part1) {
+            wisdomResult = { ...wisdomResult, ...partial };
+            setResult({ ...wisdomResult });
+          }
+        }
       );
-      wisdomResult = JSON.parse(cleanJsonString(rawWisdom));
+      // 串流完成，最終解析（分隔格式優先，JSON 備援）
+      const finalParsed = parseBlessingStream(rawWisdom);
+      if (finalParsed.verse) {
+        wisdomResult = finalParsed;
+      } else {
+        wisdomResult = JSON.parse(cleanJsonString(rawWisdom));
+      }
     } catch (e) {
       console.error("AI Connection Failed:", e);
       // 可視化錯誤提示，方便除錯
@@ -848,7 +932,11 @@ image_prompt: Abstract minimalistic geometric concept art, sharp lines, high con
         contents: [{ parts: [{ text: promptText }] }],
       };
 
-      const generatedText = await callAI('', prayerBody.contents[0].parts[0].text);
+      // 串流：禱告文逐字出現，不用乾等
+      setPrayer('');
+      const generatedText = await callAIStream('', prayerBody.contents[0].parts[0].text, 'prayer',
+        (token, full) => setPrayer(full)
+      );
       setPrayer(generatedText);
 
       // 🤝 Communion: 向聖域發送星火 (Broadcast Spark)
