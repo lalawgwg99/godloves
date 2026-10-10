@@ -71,8 +71,7 @@ const text = stripThinking(raw);
 if (!text || looksLikeThinkingLeak(text)) return null;
 if (!isEN && looksSimplified(text)) return null;
 if (isBuddhist && violatesTaboo(text)) return null;
-// 祝福格式必須包含 VERSE: 標記
-if (format === 'blessing' && !text.includes('VERSE:')) return null;
+// 祝福格式：放寬驗證（模型偶爾格式不標準，前端 parser 會盡力解析）
 return text;
 }
 
